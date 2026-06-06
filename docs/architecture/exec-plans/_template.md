@@ -10,6 +10,23 @@
 One paragraph. What "done" observably means (which CUJ passes, which metric
 moves). Explicit non-goals.
 
+## Already exists — reuse, do not recreate
+
+File paths of existing code this work touches or builds on. The analyze
+preflight in /implement-prd checks new tasks against this list.
+
+- `src/…`
+
+## Tasks
+
+Ordered; `[P]` = parallelizable with the previous task; every task names its
+file path(s) and the acceptance criteria it satisfies; test tasks precede
+implementation tasks.
+
+- [ ] T1 — <verb + object> → `src/…` (AC-1)
+- [ ] T2 [P] — <task> → `src/…` (AC-2)
+- [ ] T3 — depends: T1 — <task> → `src/…` (AC-1, AC-3)
+
 ## Phases
 
 ### Phase 1 — <milestone>

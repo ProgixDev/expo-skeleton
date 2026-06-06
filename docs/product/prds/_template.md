@@ -1,6 +1,7 @@
 # PRD-NNNN — Title
 
 - **Status:** draft | approved | shipped
+- **Size:** M | L (S-size work needs no PRD — see ADR-0005 sizing gate)
 - **Author / Date:**
 - **Owner squad:**
 - **Links:** issue, designs (Figma), exec plan (added when implementation starts)
@@ -29,6 +30,11 @@ name. Mark anything that is a painted door explicitly.
 ## Non-goals
 
 What we deliberately exclude this iteration.
+
+## Clarifications
+
+Material Q→A recorded by `/clarify` (one line each, dated). Empty is fine —
+zero questions is a success state, not a gap.
 
 ## Proof
 

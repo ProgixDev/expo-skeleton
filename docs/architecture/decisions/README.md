@@ -13,3 +13,4 @@ changes, anything you'd otherwise explain twice.
 - [ADR-0002 — NativeWind 4 for styling](0002-nativewind-for-styling.md)
 - [ADR-0003 — Zustand + Zod for state and validation](0003-zustand-zod-state.md)
 - [ADR-0004 — AI harness: AGENTS.md + persona reviews + agentic QA](0004-ai-harness.md)
+- [ADR-0005 — Spec-driven development: absorb the ideas, reject the ceremony](0005-spec-driven-development.md)

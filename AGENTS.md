@@ -24,9 +24,14 @@ Notably, `expo-router` no longer sits on react-navigation — never import
    writing code. For product work, the PRD in `docs/product/prds/` is the
    contract. Look at neighboring code: the repo is deliberately homogeneous —
    pattern-match `src/features/tasks/` rather than inventing new shapes.
-2. **Plan.** For anything bigger than a small fix, write an exec plan to
-   `docs/architecture/exec-plans/` (copy `_template.md`). Keep it updated as
-   you work; it is the durable log of implementation decisions.
+2. **Size, then plan.** Triage first (ADR-0005): **S** (bug fix / tweak) →
+   no planning artifacts, implement directly with a regression test. **M**
+   (one slice) → testable PRD + a task list with file paths and AC mapping.
+   **L** (multi-slice / native changes) → exec plan in
+   `docs/architecture/exec-plans/` (≤2 pages, copy `_template.md`), kept
+   updated as the durable log. Run `/clarify` first when a PRD has
+   ambiguities that would change the implementation (max 5 questions).
+   Always inventory existing code before planning — reuse, never recreate.
 3. **Implement.** Small commits, Conventional Commit messages
    (`feat(tasks): …`). Follow the hard rules below — they are enforced by
    ESLint, Jest, docs-lint and CI, so violations will fail the build anyway.
