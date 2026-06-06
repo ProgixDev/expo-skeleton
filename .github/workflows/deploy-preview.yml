@@ -1,0 +1,45 @@
+name: EAS preview (PR)
+
+# Publishes an OTA preview for every PR so reviewers/PMs scan a QR code and
+# try the change in the dev/preview client. Requires EXPO_TOKEN + `eas init`
+# done (docs/runbooks/repo-setup.md).
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'app.config.ts'
+      - 'package.json'
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install
+        run: npm ci
+
+      - name: Publish preview update (QR comment on the PR)
+        uses: expo/expo-github-action/preview@v8
+        with:
+          command: eas update --auto --branch pr-${{ github.event.pull_request.number }}

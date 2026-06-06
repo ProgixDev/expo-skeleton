@@ -1,0 +1,44 @@
+name: Continuous deploy (main)
+
+# Fingerprint-aware deployment on every merge to main:
+# - JS-only change  → publish EAS Update to the preview channel (minutes)
+# - native change   → kick off a new EAS build for the preview profile
+# The expo/expo-github-action continuous-deploy-fingerprint subaction
+# handles the decision via the runtime fingerprint policy.
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: continuous-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install
+        run: npm ci
+
+      - name: Fingerprint-aware build-or-update
+        uses: expo/expo-github-action/continuous-deploy-fingerprint@v8
+        with:
+          profile: preview
+          branch: preview

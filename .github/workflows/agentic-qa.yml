@@ -1,0 +1,88 @@
+name: Agentic QA (nightly)
+
+# Claude Code + Argent MCP drives the app on a simulator like a human
+# tester: walks every Critical User Journey, tries edge cases, screenshots
+# anomalies, and files a structured report (artifact). Exploratory layer on
+# top of the deterministic Maestro gate. Runbook: docs/runbooks/agentic-qa.md
+#
+# NOTE: simulator-driving agents on hosted runners are leading-edge; treat
+# the first runs as calibration, keep it non-blocking, and prefer a
+# self-hosted Mac if runtimes get long.
+
+on:
+  schedule:
+    - cron: '0 3 * * 1-5' # weekday nights 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  agentic-qa:
+    runs-on: macos-15
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      APP_VARIANT: development
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prebuild + Pods
+        run: |
+          npx expo prebuild --platform ios --no-install
+          cd ios && pod install
+
+      - name: Build & install app on simulator
+        run: npx expo run:ios --configuration Release || true
+
+      - name: Write Argent MCP config
+        run: |
+          mkdir -p /tmp/qa
+          cat > /tmp/qa/mcp.json <<'EOF'
+          {
+            "mcpServers": {
+              "argent": {
+                "command": "npx",
+                "args": ["-y", "@swmansion/argent", "mcp"]
+              }
+            }
+          }
+          EOF
+
+      - name: Claude — walk the CUJs
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Alternatively: anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are the QA engineer persona (docs/personas/qa-engineer.md).
+            The app (bundle id com.yourcompany.skeleton.dev) is installed on a
+            booted iOS Simulator. Using the Argent tools:
+
+            1. Launch the app fresh.
+            2. Walk EVERY CUJ in docs/quality/critical-user-journeys.md,
+               including each listed edge case. Screenshot end states and
+               anomalies.
+            3. Probe persistence (relaunch), rapid taps, extreme inputs.
+            4. Write the report to reports/agentic-qa.md in the EXACT format
+               from docs/runbooks/agentic-qa.md. An honest FAIL beats a
+               polite PASS.
+          claude_args: |
+            --mcp-config /tmp/qa/mcp.json
+            --allowedTools "Read,Grep,Glob,Write,Bash(xcrun simctl:*),mcp__argent__*"
+            --model claude-sonnet-4-6
+
+      - name: Upload QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentic-qa-report-${{ github.run_id }}
+          path: reports/
+          retention-days: 30

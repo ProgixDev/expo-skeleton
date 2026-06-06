@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "argent": {
+      "command": "npx",
+      "args": ["-y", "@swmansion/argent", "mcp"]
+    },
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "${NOTION_TOKEN}"
+      }
+    }
+  }
+}

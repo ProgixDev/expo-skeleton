@@ -1,0 +1,16 @@
+# CUJ-001: capture a task (docs/quality/critical-user-journeys.md)
+# Deterministic E2E gate — the agentic QA (Argent) covers the exploratory rest.
+appId: com.yourcompany.skeleton.dev
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: 'tasks-input'
+- inputText: 'Buy oat milk'
+- tapOn:
+    id: 'tasks-add-button'
+- assertVisible: 'Buy oat milk'
+- assertVisible: '1 pending'
+- tapOn:
+    id: 'tasks-empty'
+    optional: true

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify (lint · types · tests · docs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: ESLint (includes architecture boundaries)
+        run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Jest (coverage)
+        run: npm run test:ci
+
+      - name: Docs integrity (links · orphans · taste rules)
+        run: npm run docs:lint
+
+      - name: Expo doctor
+        run: npx expo-doctor
+        continue-on-error: true # advisory; tighten once the project is configured
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7

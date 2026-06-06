@@ -1,0 +1,107 @@
+name: Ship report (PDF + Notion)
+
+# On every push to main: Claude Code reads what actually changed, writes
+# 1) an engineering ship report  → rendered to PDF, uploaded as artifact
+# 2) a product "What's new" page → published to Notion via the Notion MCP
+# Requires: CLAUDE_CODE_OAUTH_TOKEN (or ANTHROPIC_API_KEY), NOTION_TOKEN
+# secret, NOTION_PARENT_PAGE_ID variable. See docs/runbooks/repo-setup.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ship-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve commit range
+        id: range
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE" 2>/dev/null || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)
+          fi
+          echo "range=$BEFORE..${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Write Notion MCP config
+        if: env.HAS_CLAUDE == 'true'
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          mkdir -p /tmp/ship
+          cat > /tmp/ship/mcp.json <<EOF
+          {
+            "mcpServers": {
+              "notion": {
+                "command": "npx",
+                "args": ["-y", "@notionhq/notion-mcp-server"],
+                "env": {
+                  "NOTION_TOKEN": "${NOTION_TOKEN}",
+                  "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer ${NOTION_TOKEN}\", \"Notion-Version\": \"2022-06-28\"}"
+                }
+              }
+            }
+          }
+          EOF
+
+      - name: Claude — write report + publish Notion page
+        if: env.HAS_CLAUDE == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Alternatively: anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Follow .github/prompts/ship-report.md exactly.
+            COMMIT RANGE: ${{ steps.range.outputs.range }}
+            SHA: ${{ github.sha }}
+            RUN URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            NOTION PARENT PAGE ID: ${{ vars.NOTION_PARENT_PAGE_ID }}
+          claude_args: |
+            --mcp-config /tmp/ship/mcp.json
+            --allowedTools "Read,Grep,Glob,Write,Bash(git log:*),Bash(git show:*),Bash(git diff:*),mcp__notion__*"
+            --model claude-sonnet-4-6
+
+      - name: Fallback deterministic report (no Claude secret)
+        if: env.HAS_CLAUDE != 'true'
+        run: |
+          mkdir -p reports
+          node scripts/ship-report-fallback.mjs "${{ steps.range.outputs.range }}" > reports/ship-report.md
+
+      - name: Render PDF
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q pandoc fonts-inter
+          pipx install weasyprint || pip install --user weasyprint
+          export PATH="$HOME/.local/bin:$PATH"
+          DATE=$(date -u +%Y-%m-%d)
+          pandoc reports/ship-report.md -f gfm -t html5 --standalone \
+            --css .github/pdf/report.css \
+            --metadata title="Ship report — $DATE" \
+            -o /tmp/ship-report.html
+          weasyprint /tmp/ship-report.html "reports/ship-report-$DATE-${GITHUB_SHA::7}.pdf"
+
+      - name: Job summary
+        run: cat reports/ship-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload PDF + markdown
+        uses: actions/upload-artifact@v4
+        with:
+          name: ship-report-${{ github.sha }}
+          path: |
+            reports/*.pdf
+            reports/*.md
+          retention-days: 90

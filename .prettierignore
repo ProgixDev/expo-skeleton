@@ -1,0 +1,11 @@
+node_modules
+.expo
+dist
+android
+ios
+coverage
+reports
+package-lock.json
+assets
+*.lock
+.husky/_

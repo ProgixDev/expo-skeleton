@@ -1,0 +1,123 @@
+# AGENTS.md — Operating Manual
+
+This file is the entry point for every coding agent (and every human) working
+in this repository. It tells you how we work, where knowledge lives, and which
+rules are non-negotiable. `CLAUDE.md` imports this file; Cursor/Copilot rules
+point here too. **When instructions conflict, the user's explicit prompt wins,
+then this file, then linked docs.**
+
+## What this repository is
+
+A production skeleton for our mobile apps. Expo SDK 56 · React Native 0.85 ·
+React 19.2 · TypeScript strict · expo-router · Zustand 5 · Zod 4 ·
+NativeWind 4 (Tailwind 3) · Reanimated 4 · Jest + React Native Testing
+Library · Maestro + Argent for E2E/agentic QA.
+
+Expo has changed significantly: read the versioned docs at
+https://docs.expo.dev/versions/v56.0.0/ before writing Expo-specific code.
+Notably, `expo-router` no longer sits on react-navigation — never import
+`@react-navigation/*`.
+
+## Operating model — every task follows this loop
+
+1. **Ground yourself.** Read the relevant docs from the map below _before_
+   writing code. For product work, the PRD in `docs/product/prds/` is the
+   contract. Look at neighboring code: the repo is deliberately homogeneous —
+   pattern-match `src/features/tasks/` rather than inventing new shapes.
+2. **Plan.** For anything bigger than a small fix, write an exec plan to
+   `docs/architecture/exec-plans/` (copy `_template.md`). Keep it updated as
+   you work; it is the durable log of implementation decisions.
+3. **Implement.** Small commits, Conventional Commit messages
+   (`feat(tasks): …`). Follow the hard rules below — they are enforced by
+   ESLint, Jest, docs-lint and CI, so violations will fail the build anyway.
+4. **Verify — close the loop.** `npm run verify` must pass. For UI changes,
+   boot the app and _look at it_: with the Argent MCP you can build, launch,
+   tap, screenshot and read logs on the iOS Simulator / Android emulator
+   yourself. A change is not done until you have observed the new behavior
+   end to end (run the relevant CUJ in
+   `docs/quality/critical-user-journeys.md`).
+5. **Encode the feedback.** If you (or a reviewer) hit a mistake that could
+   recur, make it impossible: add a lint rule, a test, or update the docs in
+   the same PR. Update any doc your change made stale — `npm run docs:lint`
+   fails on broken links and orphaned docs.
+
+## Commands
+
+```bash
+npm run verify        # format:check + lint + typecheck + test + docs:lint — the CI gate
+npm test              # Jest (watch: npm run test:watch)
+npm run lint:fix      # ESLint with autofix
+npm run typecheck     # tsc --noEmit
+npm run ios           # expo start --ios (dev client)
+npm run e2e:ios       # Maestro flows in .maestro/flows
+npm run new:feature   # scaffold a feature slice (then read the printed next steps)
+npm run docs:lint     # docs integrity: links, orphans, taste rules
+```
+
+## Docs map — decide what to pull into context
+
+| Read this                                       | When                                            |
+| ----------------------------------------------- | ----------------------------------------------- |
+| `docs/index.md`                                 | You want the table of contents of all knowledge |
+| `docs/architecture/overview.md`                 | First task in this repo                         |
+| `docs/architecture/module-boundaries.md`        | Adding files/imports anywhere                   |
+| `docs/architecture/state-management.md`         | Touching Zustand stores or async data           |
+| `docs/architecture/navigation.md`               | Adding screens or deep links                    |
+| `docs/architecture/styling.md`                  | Any UI work (NativeWind patterns)               |
+| `docs/architecture/decisions/`                  | Why things are the way they are (ADRs)          |
+| `docs/architecture/exec-plans/`                 | Implementation plans (write yours here)         |
+| `docs/conventions/code-style.md`                | Writing any TypeScript                          |
+| `docs/conventions/testing.md`                   | Writing or fixing tests                         |
+| `docs/conventions/git-workflow.md`              | Branching, commits, PRs, releases               |
+| `docs/conventions/design-system.md`             | Tokens, typography, components                  |
+| `docs/conventions/environments.md`              | Env vars, EAS profiles, secrets                 |
+| `docs/product/vision.md` + `docs/product/prds/` | What we're building and why                     |
+| `docs/personas/`                                | Reviewer lenses CI applies to your diff         |
+| `docs/quality/critical-user-journeys.md`        | What must never break (QA flows)                |
+| `docs/quality/quality-score.md`                 | Current code-health notes — append yours        |
+| `docs/runbooks/`                                | Setup, release, agentic QA operations           |
+
+## Hard rules (enforced; do not negotiate in-code)
+
+- **Boundaries:** `src/app` (routes, THIN) → `src/features/<name>` (vertical
+  slices, public API = `index.ts`) → `src/shared` (generic kit). No
+  cross-feature imports; no upward imports. ESLint `boundaries/*` enforces.
+- **Validate at the edges.** Everything entering the app (user input, storage
+  rehydration, network) passes a Zod schema in `model/schema.ts`.
+- **State:** Zustand stores live in `features/*/model/store.ts`; subscribe via
+  selectors; never store derived data. `process.env` is read only by
+  `src/shared/lib/env.ts`.
+- **UI:** className + NativeWind only — no inline `style` for static styling,
+  no `StyleSheet.create` in features. Use `cn()` for conditionals. Use shared
+  `AppText`/`Button`/`Screen`/`TextField` primitives; extend `shared/ui`
+  rather than one-off styling. Animations use Reanimated, respect
+  reduced-motion, target 60fps (no JS-thread loops).
+- **Every interactive or assertable element gets a `testID`** (kebab-case,
+  feature-prefixed: `tasks-add-button`).
+- **Tests:** colocated in `__tests__/`; never inside `src/app/` (router treats
+  files there as routes). New logic ⇒ new tests; bug fix ⇒ regression test
+  first. Coverage floor 60% lines (will rise).
+- **Typography taste:** user-facing copy uses typographic apostrophes (’) —
+  docs-lint fails on straight quotes in UI text.
+- **Never** edit `ios/`/`android/` by hand (CNG owns them), commit secrets,
+  use `any` without a `// why:` comment, or add a dependency without checking
+  `npx expo install` compatibility + an ADR for anything architectural.
+- **Conventional Commits required** — automation (changelog, ship report,
+  Notion page) is generated from them.
+
+## Pull requests — proof of work
+
+PRs follow `.github/PULL_REQUEST_TEMPLATE.md`: link the intent (PRD/issue),
+list what changed, and attach proof (test output, screenshots, simulator
+recording, or an Argent session summary). CI runs the verify suite plus
+persona reviews (`.claude/agents/` ↔ `docs/personas/`); resolve their P1/P2
+findings before requesting human review. Releases and store builds:
+`docs/runbooks/release.md`.
+
+## When you're blocked
+
+Stop after two failed attempts at the same fix. Re-read the relevant doc;
+check `docs/quality/quality-score.md` for known landmines; then ask the human
+with a concrete question ("X conflicts with Y, which wins?"). Don't push
+through with hacks — and when the answer arrives, encode it (rule, test, or
+doc) so the next agent never asks again.
