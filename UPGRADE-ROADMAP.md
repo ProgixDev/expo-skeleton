@@ -117,20 +117,20 @@ Then **Phase N** mirrors this into Next.js.
 
 ## Phase 5 — Docs for AI legibility → read [`05-agent-skill-architecture.md`](docs/research/05-agent-skill-architecture.md)
 
-- [ ] Front-matter on every doc: `id`, `read-when`, `owns`, links (pattern already used in `docs/research/`).
-- [ ] `docs/index.md` = a **small pointer table** ("read X when Y"), not a dump (just-in-time over indexes).
-- [ ] Convert security + store + UX rules into **queryable rule files** (CSV/MD with rule IDs) loaded on demand.
-- [ ] **Path-scoped rules/skills** (`paths:` globs) so guidance auto-loads only when Claude touches matching files.
-- [ ] Keep AGENTS.md short; `@AGENTS.md` import stays. One fact = one home.
+- [x] **Front-matter** (`id`/`read-when`/`owns`) on all new docs (security, store, design, research, backend) + the core architecture docs; AGENTS notes the convention + just-in-time retrieval.
+- [x] `docs/index.md` = a **pointer table** ("read X when Y"), with sections for Security / Store / Design / Research.
+- [x] **Queryable rule files**: `docs/security/checklist.md` (`SEC-*`) + `docs/store/checklist.md` (`STORE-*`) loaded on demand; the audit skills cite the IDs.
+- [x] Kept AGENTS.md short; `@AGENTS.md` import stays; one fact = one home (repo-only, ADR-0008).
+- [~] **Path-scoped `paths:` skills** — deferred (the `read-when` front-matter + grep/glop retrieval cover it; revisit if context bloat shows up). Legacy-doc front-matter sweep is optional backlog.
 
 ## Phase 6 — Skills → read [`05-agent-skill-architecture.md`](docs/research/05-agent-skill-architecture.md)
 
-- [ ] **`/daily-report`** — `!`git log --since=midnight`` + `!`git diff --stat`` injection → writes `docs/reports/daily/YYYY-MM-DD.md` (what changed, decisions, open threads, next steps); returns path + summary. (For your "I forget things" need.) Optionally schedulable.
-- [ ] **`/security-review`** — forks to read-only Explore; cites rule IDs from `references/security-checklist.md`; verdict + artifact.
-- [ ] **`/store-readiness`** — Phase 3 audit skill.
-- [ ] **`/new-component`** — generator: `arguments:[name,kind]`, reads `references/component-template.tsx`, tokenized + accessible + dark-mode + testID + test, enforces module boundaries.
-- [ ] Ship the harness as a **versioned plugin** (`expo-harness`); audit/delete dead skills.
-- [ ] Hooks: PreToolUse blocks writes to protected paths; PostToolUse formats; Stop runs typecheck+lint (guard `stop_hook_active`).
+- [x] **`/daily-report`** — git-context injection → writes `docs/reports/daily/<date>.md` **in French, classed by project** (Travail effectué / Ce qui est en cours / Les blocages / Message pour le client + hand-filled hours & front/back %). Returns path + summary.
+- [x] **`/security-review`** — audits the diff vs `docs/security/checklist.md` (`SEC-*`), explicit RLS/secret/validation checks, `[P1|P2|P3] SEC-ID` findings + APPROVE/REQUEST-CHANGES verdict + harness proposals.
+- [x] **`/store-readiness`** — runs `store:check` + walks the manual `STORE-*` catalog (demo account, IAP/Restore, labels, 4.3 differentiator) → READY/BLOCKED.
+- [x] **`/new-component`** — generator for a tokenized, accessible, dark-mode, testID'd shared UI primitive + test; lean-core ("don't pre-build the unused").
+- [x] Hooks already present and kept: PreToolUse `protect-paths`, PostToolUse `post-edit-format`; permissions allow/deny in `.claude/settings.json`.
+- [~] Ship as a versioned plugin (`expo-harness`) + delete dead Notion skills (progix/meeting-intake/setup-project) — flagged "legacy" in the skills README; **optional backlog**.
 
 ## Phase 7 — Shared UI lean core + generator → read [`04-design-and-prompting.md`](docs/research/04-design-and-prompting.md)
 
