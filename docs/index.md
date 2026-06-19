@@ -40,13 +40,16 @@ docs-lint keeps every page linked and every link alive.
 - [Performance engineer](personas/performance-engineer.md)
 - [QA engineer](personas/qa-engineer.md)
 
-## Process (Progix OS)
+## Process (repo-only operating model — see [ADR-0008](architecture/decisions/0008-repo-only-operating-model.md))
 
 - [Workflow](process/workflow.md) — roles, the two tracks, working without conflicts
 - [Definition of done](process/definition-of-done.md) — the done checklist both tracks enforce
-- [Notion workspace](process/notion-workspace.md) — the four surfaces + project structure
 - [R2R — Requirement-to-Review](process/r2r.md) — how requirement churn reaches the spec
 - [Painted-door experiments](process/painted-door.md) — ship clickable experiments safely
+
+## Research (upgrade evidence base)
+
+- [Research briefs](research/README.md) — cited 2025–2026 research grounding the skeleton upgrade (security, store compliance, Supabase, design, skills, stack, community)
 
 ## Templates
 

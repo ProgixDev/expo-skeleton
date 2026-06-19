@@ -34,7 +34,7 @@ Notably, `expo-router` no longer sits on react-navigation — never import
    Always inventory existing code before planning — reuse, never recreate.
 3. **Implement.** Small commits, Conventional Commit messages
    (`feat(tasks): …`). Follow the hard rules below — they are enforced by
-   ESLint, Jest, docs-lint and CI, so violations will fail the build anyway.
+   ESLint, Jest, docs-lint and the local gates, so violations fail `verify` anyway.
 4. **Verify — close the loop.** `npm run verify` must pass. For UI changes,
    boot the app and _look at it_: with the Argent MCP you can build, launch,
    tap, screenshot and read logs on the iOS Simulator / Android emulator
@@ -49,7 +49,7 @@ Notably, `expo-router` no longer sits on react-navigation — never import
 ## Commands
 
 ```bash
-npm run verify        # format:check + lint + typecheck + test + docs:lint — the CI gate
+npm run verify        # format:check + lint + typecheck + test + docs:lint — the local gate
 npm test              # Jest (watch: npm run test:watch)
 npm run lint:fix      # ESLint with autofix
 npm run typecheck     # tsc --noEmit
@@ -77,26 +77,30 @@ npm run docs:lint     # docs integrity: links, orphans, taste rules
 | `docs/conventions/design-system.md`             | Tokens, typography, components                   |
 | `docs/conventions/environments.md`              | Env vars, EAS profiles, secrets                  |
 | `docs/product/vision.md` + `docs/product/prds/` | What we're building and why                      |
-| `docs/personas/`                                | Reviewer lenses CI applies to your diff          |
+| `docs/personas/`                                | Reviewer lenses the `/review` skill applies      |
 | `docs/quality/critical-user-journeys.md`        | What must never break (QA flows)                 |
 | `docs/quality/quality-score.md`                 | Current code-health notes — append yours         |
 | `docs/runbooks/`                                | Setup, release, agentic QA operations            |
-| `docs/process/`                                 | How the team works: tracks, DoD, Notion, R2R     |
-| `docs/templates/`                               | Human-facing artifacts `/progix` instantiates    |
+| `docs/process/`                                 | How the team works: the two tracks, DoD, R2R     |
+| `docs/templates/`                               | Human-facing artifacts skills instantiate        |
 | `docs/reports/`                                 | Feature + daily evidence reports (Markdown)      |
+| `docs/research/`                                | Cited 2025–2026 research grounding the upgrade   |
 | `specs/constitution.md` + `specs/`              | Non-negotiable principles + spec-track contracts |
 
-## The Progix operating system (ADR-0006)
+## Operating model — repo-only (ADR-0008, partially supersedes ADR-0006)
 
-This repo is the mobile half of the Progix OS shared with the web skeleton.
-**One front door:** a new project starts from a clone and one message — `/progix`
-— which interviews, writes the PRD, creates the GitHub repo + board, fills the
-Notion project, runs `/setup-project`, and emits the Claude Design prompt. **Four
-surfaces:** _Notion explains · GitHub tracks · Slack coordinates · the repo
-enforces_ — every fact has one home (`docs/process/notion-workspace.md`,
-Constitution Art. XI). Feature-track work lives in `specs/NNN-slug/` under
-`specs/constitution.md`; the S/M/L sizing gate still lets small work skip the
-ceremony. Full skill flow and roles: `docs/process/workflow.md`.
+**The repo is the only operating surface.** There is no Notion/Slack/GitHub-Actions
+layer to keep in sync, and no cloud CI — verification runs locally via `npm run verify`
+and the Husky pre-commit hooks. Every fact has one home, and that home is the repo
+(Constitution Art. XI). Feature-track work lives in `specs/NNN-slug/` under
+`specs/constitution.md`; the S/M/L sizing gate lets small work skip the ceremony.
+Full skill flow and roles: `docs/process/workflow.md`. The upgrade in progress
+(security, store-compliance, Supabase, design, skills) is tracked in
+`UPGRADE-ROADMAP.md` and grounded in the cited briefs under `docs/research/`.
+
+> Note: the old `/progix` "four-surface" front door (ADR-0006) is being retired;
+> some skills still reference Notion/GitHub orchestration and are de-Notioned during
+> the Phase 5/6 rebuild.
 
 ## Hard rules (enforced; do not negotiate in-code)
 

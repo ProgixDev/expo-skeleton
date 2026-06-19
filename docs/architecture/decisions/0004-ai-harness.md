@@ -29,10 +29,10 @@ inject context and reject bad output (harness engineering).
 
 - Positive: feedback compounds in the repo; non-engineers ship safely via
   PRDs; review attention moves to intent, not mechanics.
-- Negative: docs discipline is mandatory (docs-lint makes it cheap to keep);
-  CI minutes for AI review/QA; macOS runners for simulator jobs.
-- Enforcement: `scripts/docs-lint.mjs`, `.github/workflows/claude-pr-review.yml`,
-  `agentic-qa.yml`, PR template proof-of-work section.
+- Negative: docs discipline is mandatory (docs-lint makes it cheap to keep).
+- Enforcement: `scripts/docs-lint.mjs` + local gates (`npm run verify` + Husky
+  pre-commit hooks). Review/QA run locally via skills (`/review`, `/verify-ui`),
+  not cloud CI (cloud CI/CD removed — [ADR-0008](0008-repo-only-operating-model.md)).
 
 ## Alternatives considered
 

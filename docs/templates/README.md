@@ -11,4 +11,4 @@ These are the canonical sources for the human-facing artifacts of a project. Ski
 | [daily-report.md](daily-report.md)                       | `/daily-report`                                                | Notion → project → GitHub + `docs/reports/daily/`                            |
 | [meeting-notes.md](meeting-notes.md)                     | `/meeting-intake`                                              | Notion → project → Meetings                                                  |
 
-Rule for all of them: human-readable first (the PM, Ilyes, and the client read these), short, honest, and dated. See `docs/process/notion-workspace.md`.
+Rule for all of them: human-readable first (the PM and the client read these), short, honest, and dated. They live in the repo (`docs/`) — the only operating surface (ADR-0008).

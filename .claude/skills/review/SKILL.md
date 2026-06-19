@@ -11,7 +11,7 @@ allowed-tools: Read Grep Glob Bash(git diff*) Bash(git log*) Task
 
 ## Task
 
-Convene the review board on the current branch's changes (base: `$ARGUMENTS` or `main`), exactly as CI will (`.github/workflows/claude-pr-review.yml` ↔ `docs/personas/`).
+Convene the review board on the current branch's changes (base: `$ARGUMENTS` or `main`) using the reviewer lenses in `docs/personas/`. This runs locally before merge — there is no cloud CI review (ADR-0008).
 
 1. **Select reviewers by blast radius** (don't waste tokens on irrelevant lenses):
    - Any code → `frontend-architect`

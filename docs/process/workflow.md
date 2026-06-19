@@ -21,26 +21,29 @@ The role boundary is **what you're accountable for reviewing**, not what you're 
 ```
 PM/dev: /create-spec  →  specs/NNN-slug/spec.md     (what + why + acceptance criteria)
 dev:    /plan-feature →  plan.md + tasks.md          (how; sizing gate; flags overlap)
-agent:  /implement-feature                           (tasks, checkpoint commits, gates green)
+agent:  /implement-feature                           (tasks, checkpoint commits, local gates green)
 agent:  /verify-ui    →  Argent screenshots/recording (evidence vs acceptance criteria)
 agent:  /review       →  persona findings fixed (P0/P1)
 agent:  /feature-report → docs/reports/NNN-slug.md   (diff + screenshots + verdicts)
-PR:     CI gates + persona action + human CODEOWNER
+merge:  local gates green (`npm run verify` + pre-commit hooks) + human CODEOWNER review
 after merge: /update-docs → living feature doc, CUJs, index updated; spec marked shipped
 ```
+
+Verification runs **locally** (`npm run verify` + Husky pre-commit hooks), not in cloud CI.
+The repo is the only operating surface — there is no Notion/Slack/GitHub-Actions layer to keep in sync.
 
 ## Working without conflicts
 
 1. **One feature = one slice = one branch.** Module boundaries make file collisions structurally impossible between features.
 2. **Specs declare territory.** `spec.md` lists "areas touched"; `/plan-feature` checks active specs and flags overlaps _before_ code exists.
-3. **Shared-layer changes ride alone.** Touching `src/shared`, configs, native config, or CI is its own small PR, CODEOWNER-reviewed, merged fast so features rebase onto it.
+3. **Shared-layer changes ride alone.** Touching `src/shared`, configs, or native config is its own small PR, CODEOWNER-reviewed, merged fast so features rebase onto it.
 4. **Rebase daily, merge small.** A branch older than two days is a process smell — split it.
 5. **Docs and specs merge like code.** They live in the repo precisely so that review, history, and conflict resolution work the same way.
 
 ## Cadence (suggested)
 
 - **Weekly planning:** specs reviewed as a team (the spec review _is_ the design review).
-- **Demo on merge:** the feature report is the demo artifact — post it in the team channel.
+- **Demo on merge:** the feature report (`docs/reports/`) is the demo artifact and lives in the repo.
 - **Retro:** every recurring agent/human failure leaves with an `/encode-lesson` assignment. Measure the harness by how rarely the same feedback is given twice.
 
 ## Escalation

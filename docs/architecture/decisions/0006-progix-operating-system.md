@@ -1,6 +1,6 @@
 # ADR-0006 — The Progix operating system: one front door, four surfaces, specs + skills
 
-- **Status:** accepted (supersedes [ADR-0005](0005-spec-driven-development.md))
+- **Status:** partially superseded by [ADR-0008](0008-repo-only-operating-model.md) — the **four-surface (Notion / GitHub / Slack / repo) model and cloud CI/CD are dropped**; the repo is the only operating surface. The `specs/` track, sizing gate, constitution, and skills introduced here remain in force.
 - **Date:** 2026-06-09
 - **Deciders:** Achraf Arabi (lead), Ilyes Ghorieb (Progix), Mohamed Bouhezza (PM)
 

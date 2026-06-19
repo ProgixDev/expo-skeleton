@@ -28,7 +28,7 @@ End a dry run with a clear **"DRY RUN — nothing was created. To do it for real
 
 ### Step 1 — Ground (read these fully, then prove it)
 
-Read AGENTS.md, docs/index.md, docs/architecture/overview.md, docs/architecture/module-boundaries.md, docs/process/workflow.md, docs/process/notion-workspace.md, docs/process/r2r.md, specs/constitution.md. Then reply with the **grounding receipt** (max 10 lines, then stop) so the human can confirm you're oriented:
+Read AGENTS.md, docs/index.md, docs/architecture/overview.md, docs/architecture/module-boundaries.md, docs/process/workflow.md, docs/process/r2r.md, specs/constitution.md. Then reply with the **grounding receipt** (max 10 lines, then stop) so the human can confirm you're oriented:
 
 1. The operating loop, in one line.
 2. The two work tracks (S quick-track / M·L spec-track) and when each applies.
