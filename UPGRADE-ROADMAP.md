@@ -92,18 +92,19 @@ Then **Phase N** mirrors this into Next.js.
 
 ## Phase 3 — Store compliance (Apple + Google) → read [`02-store-compliance.md`](docs/research/02-store-compliance.md)
 
-- [ ] `docs/store/apple-app-review.md` + `docs/store/google-play.md` — AI-legible, rule-id → requirement → how-we-comply (exact guideline numbers).
-- [ ] `references/store-checklist.md` — the machine-readable rule list (seed in the brief) for the audit skill.
-- [ ] `docs/store/submission-runbook.md` — pre-submit steps (build, screenshots, privacy forms, demo account, review notes).
-- [ ] **Highest-leverage defenses baked in:**
-  - [ ] Mandatory **in-app account deletion** wired to Supabase auth (Apple 5.1.1(v) + Google) + web deletion URL.
-  - [ ] **Privacy-manifest + Data-safety generator** that reads installed SDKs so declarations never drift (`ios.privacyManifests`, copy required reasons from node_modules).
-  - [ ] **IAP-first** payments with a US external-link toggle; working **Restore Purchases**; subscription paywall with EULA+Privacy + auto-renew disclosure.
-  - [ ] `expo-tracking-transparency` only if tracking (this stack is ATT-free → likely omit).
-  - [ ] `expo-build-properties` target API ≥35 (≥36 ~Aug 2026); tailored `ios.infoPlist` usage strings; `android.blockedPermissions` strips extras.
-- [ ] **"No soon" lint** — fail on placeholder copy ("coming soon", "TODO", lorem) in shipped screens.
-- [ ] **Originality gate** — review lens that checks each app isn't a thin re-skin (4.3 / 4.2.6); per-app distinct branding/copy/feature.
-- [ ] `/store-readiness` skill (Phase 6) audits the build against both rule bases, citing guideline numbers.
+- [x] `docs/store/apple-app-review.md` + `docs/store/google-play.md` — AI-legible, rule-id → requirement → how-we-comply (exact guideline numbers incl. **2.5.2** from the vibe-coding crackdown).
+- [x] `docs/store/checklist.md` — queryable `STORE-*` rule catalog (auto vs manual) for the audit skill.
+- [x] `docs/store/submission-runbook.md` — brand → pre-flight → privacy → accounts/payments → metadata → build/submit → external audit.
+- [x] **Highest-leverage defenses baked in:**
+  - [x] Mandatory **in-app account deletion**: `/account` route + `delete-account` Edge Function (validates JWT, admin-deletes user + cascaded data) + `deleteAccount` store action. _(Web deletion URL = per-project, in runbook.)_
+  - [x] **iOS privacy manifest** (`ios.privacyManifests` with required-reason codes) + `usesNonExemptEncryption:false` in `app.config.ts`. _(SDK-reading generator = future nicety; runbook covers copying SDK reasons.)_
+  - [~] **IAP/payments**: RevenueCat + server-owned entitlement done in Phase 2; paywall UI + Restore button land with the design phase.
+  - [x] ATT intentionally omitted (stack is ATT-free).
+  - [x] `expo-build-properties` target API **35**; `android.blockedPermissions` template; tailored `infoPlist` usage-string guidance.
+- [x] **"No soon" / store-readiness audit** `scripts/check-store-readiness.mjs` (`npm run store:check`, pre-submission gate not in `verify`): placeholder copy, template identity (`com.yourcompany`/slug/scheme), deletion path, privacy manifest, target SDK.
+- [x] **Originality gate** documented (4.3): the audit flags template-identity leftovers; the manual checklist + `/store-readiness` skill require a stated differentiator per app.
+- [ ] `/store-readiness` skill (Phase 6) wraps the audit + manual catalog, citing rule IDs.
+- **⚠️ On your Mac:** `npx expo install expo-build-properties`; run `npm run store:check` before any submission (it will flag the skeleton's own placeholder identity — that's the "brand before shipping" signal).
 
 ## Phase 4 — Claude Design prompts (professional) → read [`04-design-and-prompting.md`](docs/research/04-design-and-prompting.md)
 
