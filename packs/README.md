@@ -45,6 +45,10 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 | `profile-settings`      | ✅     | Profile view/edit (profiles table) + local settings store + profile/edit/settings stubs                                           | none                   | `getdraft` profile/settings             |
 | `auth-screens`          | ✅     | Passwordless OTP (email + SMS), password reset, onboarding store — extends `src/features/auth`                                    | none                   | `getdraft` + `Gyraya` auth              |
 | `tabbars`               | ✅     | 5 swappable bottom-tab-bar variants (minimal/labeled/pill/floating/indicator) on headless `expo-router/ui`                        | none                   | `Gyraya` + `getdraft`                   |
+| `push-notifications`    | ✅     | expo-notifications permission + token, owner-scoped `device_tokens` migration, tap-to-route, hook                                 | none (Expo push)       | build                                   |
+| `media-upload`          | ✅     | expo-image-picker + PRIVATE Supabase Storage bucket, per-user folder RLS, signed URLs, upload hook                                | none                   | build                                   |
+| `places-search`         | ✅     | Address autocomplete + reverse geocode via free OSM Nominatim, debounced hook; feeds `nav-turn-by-turn`                           | none (Nominatim)       | build                                   |
+| `analytics`             | ✅     | PostHog typed event layer, screen tracking, ATT-free, PII guard, no-op without a key                                              | none (no-op in dev)    | build                                   |
 
 ## Anatomy of a pack
 
