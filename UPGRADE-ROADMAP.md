@@ -78,16 +78,17 @@ Then **Phase N** mirrors this into Next.js.
 
 ## Phase 2 — Supabase secure reference (Expo) → read [`03-supabase-security.md`](docs/research/03-supabase-security.md)
 
-- [ ] ADR `0007-supabase-backend.md` (RLS-first posture, data boundary).
-- [ ] `src/shared/lib/supabase.ts` — typed client, **LargeSecureStore** session, `flowType:'pkce'`, `detectSessionInUrl:false`, `autoRefreshToken`, `persistSession`, `lock:processLock`; AppState refresh.
-- [ ] Auth slice `src/features/auth/` — sign up/in/out/session, Zod-validated, all states, testIDs, tests; protected-route guard in expo-router; **PKCE deep-link** callback on a verified link.
-- [ ] **RLS reference migrations**: RLS-on-by-default + **auto-enable event trigger**; owner-scoped policy templates (`(select auth.uid())`, `TO authenticated`, `WITH CHECK`); `as restrictive` MFA policy; private `private` schema for security-definer helpers; revoke default grants.
-- [ ] Replace painted-door tasks store with one **example feature persisted to Supabase behind RLS** (canonical secure pattern). Split sensitive columns into their own table.
-- [ ] **pgTAP RLS tests** in `supabase/tests/database/` + **Security Advisor** (`supabase db lint`) as release gates (block on ERROR lints 0007/0013/0015).
-- [ ] Adopt **publishable/secret keys + asymmetric JWT signing** now (legacy sunset end of 2026).
-- [ ] **Payments→DB**: RevenueCat webhook → Edge Function (`verify_jwt=false`, verify Authorization header secret, idempotent) → entitlement table (client RLS SELECT-only). MFA (`aal2`), leaked-password protection, CAPTCHA on auth.
-- [ ] Build-time grep guard: fail if a Supabase URL pairs with a service_role/secret key in the bundle.
-- [ ] `docs/architecture/backend.md`.
+- [x] ADR `0007-supabase-backend.md` (RLS-first posture, data boundary).
+- [x] `src/shared/lib/supabase.ts` — client with **LargeSecureStore** session, `flowType:'pkce'`, `detectSessionInUrl:false`, `autoRefreshToken`, `persistSession`, `lock:processLock`; `registerSupabaseAutoRefresh()` AppState wiring. Env adds `SUPABASE_URL` + `ANON_KEY` (env.ts **rejects a service_role key**).
+- [x] Auth slice `src/features/auth/` — sign up/in/out/session store, Zod-validated, error/loading states, testIDs; `useProtectedRoute` guard wired in `_layout`; `sign-in` route. _(Polished UI + verified-link PKCE deep-link callback = Phase 4/later.)_
+- [x] **RLS reference migrations** (`supabase/migrations/`): revoke default grants + **auto-enable RLS event trigger** + `private` schema (`0001`); `profiles` mirror (`0002`); owner-scoped CRUD example `notes` (`0003`, the canonical pattern); entitlement table (`0004`). MFA-`aal2` restrictive policy documented in `backend.md`.
+- [x] Canonical **example feature persisted behind RLS** = `notes` (replaces the painted-door pattern).
+- [x] **pgTAP RLS tests** (`supabase/tests/database/rls.test.sql`) + **Security Advisor** gate documented (`supabase db lint`, block ERROR 0007/0013/0015).
+- [x] **Payments→DB**: RevenueCat webhook Edge Function (`verify_jwt=false`, verify Authorization-header secret, idempotent upsert) → `subscriptions` (client RLS SELECT-only; only service_role writes).
+- [x] **Secret-in-bundle guard** extended: env.ts refuses a service*role/`sb_secret*`anon key;`check-secrets`scans source +`dist/`.
+- [x] `docs/architecture/backend.md` (client, auth, RLS rules, copy-paste table pattern, payments, verification gates).
+- [ ] **Follow-ups (next security pass):** swap the demo `tasks` store onto `notes`+Supabase in the UI; asymmetric JWT signing keys; MFA enrolment UI; leaked-password protection + CAPTCHA; storage-bucket policies; sign-out affordance in UI.
+- **⚠️ On your Mac:** `npx expo install @supabase/supabase-js react-native-url-polyfill expo-secure-store react-native-get-random-values && npm i aes-js && npm i -D @types/aes-js`; then `npx expo start` once (regenerates typed routes for `/sign-in`) and `npm run verify`. Supabase: `supabase db reset && supabase test db`.
 
 ## Phase 3 — Store compliance (Apple + Google) → read [`02-store-compliance.md`](docs/research/02-store-compliance.md)
 
