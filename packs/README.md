@@ -44,7 +44,7 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 | `feed-reels`            | ✅     | Vertical video feed: migration + RLS, paginated query, autoplay-on-visible player, optimistic likes; feed stub                    | none                   | build                                   |
 | `profile-settings`      | 🟡     | Profile + settings + edit-profile + account screens wired to Supabase                                                             | none                   | `getdraft` profile/settings             |
 | `auth-screens`          | 🟡     | Phone/email OTP, onboarding/quiz, password reset — extends `src/features/auth`                                                    | none                   | `getdraft` + `Gyraya` auth              |
-| `tabbars`               | 🟡     | 5–6 bottom-tab-bar variants (animated/custom) — UI, lower priority until design                                                   | none                   | `Gyraya` + `getdraft`                   |
+| `tabbars`               | ✅     | 5 swappable bottom-tab-bar variants (minimal/labeled/pill/floating/indicator) on headless `expo-router/ui`                        | none                   | `Gyraya` + `getdraft`                   |
 
 ## Anatomy of a pack
 
