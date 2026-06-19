@@ -22,6 +22,7 @@ module.exports = defineConfig([
       'ios/**',
       'coverage/**',
       'reports/**',
+      'packs/**', // feature-pack library: parked, opt-in code — not linted until installed
       'expo-env.d.ts',
       '**/._*', // macOS AppleDouble files on exFAT/network volumes
     ],

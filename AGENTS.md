@@ -109,6 +109,15 @@ Full skill flow and roles: `docs/process/workflow.md`. The upgrade in progress
 > (Notion R2R) have been **removed** (ADR-0008). New projects start by cloning and
 > running `/setup-project`.
 
+## Feature packs (`packs/`)
+
+`packs/` is a library of ready-made, **logic-first** feature modules (payments, barcode scan, chat,
+feed/reels, navigation, profile/settings, auth screens, tab bars). It is **excluded from the app**
+(tsconfig/ESLint/Jest) — parked and inactive, adding zero weight until you opt one in with
+**`/add-feature <pack>`**. Each pack ships the working background (data/state/services/migrations/
+hooks) plus a **minimal, swappable UI** the design pass replaces. See `packs/README.md`. Do not
+import from `packs/` in app code — install the pack instead.
+
 ## Hard rules (enforced; do not negotiate in-code)
 
 - **Boundaries:** `src/app` (routes, THIN) → `src/features/<name>` (vertical

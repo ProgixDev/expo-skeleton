@@ -8,6 +8,9 @@ module.exports = {
   // Test files live in __tests__ folders next to the code they test —
   // never inside src/app (Expo Router treats those as routes).
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
+  // The feature-pack library is parked, opt-in code — don't run its tests as part
+  // of the app suite (they run once a pack is installed into src/).
+  testPathIgnorePatterns: ['/node_modules/', '/packs/'],
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|expo-router|expo-modules-core|react-native-css-interop|nativewind|@react-native-async-storage/.*|react-native-.*|zustand)/)',
   ],

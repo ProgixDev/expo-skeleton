@@ -1,0 +1,64 @@
+# Feature packs
+
+A library of **ready-made, self-contained feature modules** you can drop into an app to assemble a
+full product in hours. Packs live here, **parked and inactive** — `packs/` is excluded from the app
+(tsconfig, ESLint, Jest, the build), so it adds **zero weight** and never ships until you opt one in.
+
+You activate a pack with the **`/add-feature <pack>`** skill, which copies it into `src/features/`,
+wires the route/tab, runs any migration, and prints the config it needs.
+
+## Principles
+
+1. **Logic-first, UI-thin.** Each pack ships the **background**: data layer, state, services,
+   realtime, migrations, hooks — fully wired. The UI is a **minimal, swappable placeholder**
+   (token-driven, tagged `// DESIGN: replace after Claude Design`). Real screens come from the
+   design pass, then drop onto the working logic.
+2. **No API keys to develop.** Packs work in dev with **zero keys** (OpenFoodFacts for barcode,
+   Supabase Realtime for chat, free OSRM for routing, RevenueCat Preview/StoreKit sandbox for
+   payments). Real keys are needed only to ship — each pack's README lists them.
+3. **Separated, not wired.** A pack does nothing until installed. You can read/keep many packs in
+   the repo without any of them touching the app you're building.
+4. **Secure by default.** Packs follow the skeleton's rules — RLS-first migrations, Zod at the
+   edges, secrets server-side, storage via `@/shared/lib/storage`.
+
+## How to use
+
+```
+/add-feature payments-revenuecat     # the skill copies the pack into src/features/, wires it, prints config
+```
+
+Or by hand: copy `packs/<name>/src/*` into `src/features/<name>/`, run the migration in
+`packs/<name>/supabase/`, install the deps from `pack.json`, and follow `packs/<name>/README.md`.
+
+## Catalog
+
+Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
+
+| Pack                    | Status | What it includes (background)                                                                                                     | Dev keys               | Harvest from                            |
+| ----------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | --------------------------------------- |
+| `payments-revenuecat`   | ✅     | RevenueCat client init, offerings/purchase/restore, `useEntitlement` (reads the server-owned `subscriptions` table), paywall stub | none (Preview/sandbox) | new + `libou`                           |
+| `payments-stripe` (web) | 🟡     | Stripe checkout + webhook route, entitlement upsert, test-mode                                                                    | none (test mode)       | `getdraft`                              |
+| `scan-barcode`          | 🟡     | expo-camera scanner service, OpenFoodFacts lookup, result/verdict logic, history store                                            | none (OpenFoodFacts)   | `libou/src/features/scan`               |
+| `chat-realtime`         | 🟡     | Supabase Realtime DMs/groups: tables + RLS, send/subscribe/typing/read-receipts, store; message-list stub                         | none                   | `getdraft/app/chat` (adapt to Supabase) |
+| `nav-turn-by-turn`      | ⬜     | expo-location tracking, OSRM routing, turn-by-turn instruction engine, ETA; map stub                                              | none (OSRM)            | build                                   |
+| `feed-reels`            | ⬜     | Vertical video feed: paginated query, video-player controller, like/comment/follow, prefetch; feed stub                           | none                   | build                                   |
+| `profile-settings`      | 🟡     | Profile + settings + edit-profile + account screens wired to Supabase                                                             | none                   | `getdraft` profile/settings             |
+| `auth-screens`          | 🟡     | Phone/email OTP, onboarding/quiz, password reset — extends `src/features/auth`                                                    | none                   | `getdraft` + `Gyraya` auth              |
+| `tabbars`               | 🟡     | 5–6 bottom-tab-bar variants (animated/custom) — UI, lower priority until design                                                   | none                   | `Gyraya` + `getdraft`                   |
+
+## Anatomy of a pack
+
+See [`_TEMPLATE/`](_TEMPLATE/). Every pack has:
+
+```
+packs/<name>/
+├── pack.json          # manifest: deps, env, migrations, routes, post-install notes
+├── README.md          # what it does, how it's separated, what keys to ship
+├── src/               # the code copied into src/features/<name>/ on install
+│   ├── model/         # Zod schema + types
+│   ├── data/          # data layer (Supabase queries, API clients, realtime)
+│   ├── *-service.ts   # logic/services (key-free in dev)
+│   ├── use-*.ts       # hooks
+│   └── ui/            # MINIMAL swappable UI (replace after design)
+└── supabase/          # migrations the pack needs (RLS-first), if any
+```
