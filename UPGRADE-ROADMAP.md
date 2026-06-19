@@ -134,10 +134,12 @@ Then **Phase N** mirrors this into Next.js.
 
 ## Phase 7 — Shared UI lean core + generator → read [`04-design-and-prompting.md`](docs/research/04-design-and-prompting.md)
 
-- [ ] Keep curated core (Button, AppText, Screen, TextField) + add only near-universal ones (Icon[Lucide], Card, Sheet/Modal, EmptyState, Skeleton/Loading).
-- [ ] Each primitive: design-token-driven (no hardcoded hex), accessible (44pt, labels, reduced-motion), light/dark, testID, unit test.
-- [ ] **Design-token pipeline**: 3-tier tokens (primitive→semantic→component) backed by CSS variables; `tailwind.config.js`/NativeWind theme is the contract `/new-component` obeys.
-- [ ] `/new-component` generates the rest **on demand** — never pre-build the unused.
+- [x] Curated core kept (Button, AppText, Screen, TextField) + added near-universal **Card, EmptyState, Skeleton** (token-only, accessible, light/dark, testID, tests). Dependency-free + Expo-Go-friendly (no Lucide/sheet libs forced — apps choose their icon set).
+- [x] Each primitive: design-token-driven (no hardcoded hex), accessible (Skeleton has reduced-motion + progressbar role; EmptyState slots), light/dark via role tokens, testID, unit test.
+- [x] `tailwind.config.js` is the **token contract** `/new-component` obeys; `design-system.md` documents the lean-kit + generate-on-demand policy.
+- [x] `/new-component` (Phase 6) generates the rest **on demand** — never pre-build the unused.
+- [~] **Optional later:** Icon (Lucide + react-native-svg), Sheet/Modal (needs a lib decision) — generate when a feature needs them.
+- **⚠️ On your Mac:** `npm run verify` to confirm the new primitives lint/typecheck/test (the Skeleton uses Reanimated — verify on device that the pulse + reduced-motion behave).
 
 ---
 
