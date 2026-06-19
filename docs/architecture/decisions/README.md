@@ -14,4 +14,6 @@ changes, anything you'd otherwise explain twice.
 - [ADR-0003 — Zustand + Zod for state and validation](0003-zustand-zod-state.md)
 - [ADR-0004 — AI harness: AGENTS.md + persona reviews + agentic QA](0004-ai-harness.md)
 - [ADR-0005 — Spec-driven development: absorb the ideas, reject the ceremony](0005-spec-driven-development.md) _(superseded by ADR-0006)_
-- [ADR-0006 — The Progix operating system: one front door, four surfaces, specs + skills](0006-progix-operating-system.md)
+- [ADR-0006 — The Progix operating system: one front door, four surfaces, specs + skills](0006-progix-operating-system.md) _(four-surface model partially superseded by ADR-0008)_
+- [ADR-0007 — Supabase as the backend, RLS-first](0007-supabase-backend.md)
+- [ADR-0008 — Repo-only operating model (drop cloud CI/CD + Notion/Slack)](0008-repo-only-operating-model.md)

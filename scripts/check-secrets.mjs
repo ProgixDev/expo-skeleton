@@ -26,8 +26,8 @@ const SECRET_ENV_NAME =
 const SECRET_VALUE = [
   { re: /\bsk_(live|test)_[A-Za-z0-9]{8,}\b/g, what: 'Stripe secret key' },
   { re: /\bsb_secret_[A-Za-z0-9_-]{8,}\b/g, what: 'Supabase secret key' },
-  // service_role JWTs carry "role":"service_role"; match the decoded marker too.
-  { re: /service_role/g, what: 'service_role reference' },
+  // A real service_role key is a JWT — match the token shape, not the bare word
+  // (which appears legitimately in security comments/guards).
   { re: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{6,}\b/g, what: 'JWT literal' },
 ];
 
@@ -41,8 +41,9 @@ const IGNORE_DIRS = new Set([
   'docs',
   '.husky',
 ]);
-// Files that legitimately contain the patterns (the detectors themselves / tests).
-const IGNORE_FILES = new Set(['check-secrets.mjs', 'logger.ts']);
+// Files that legitimately contain the patterns (the detectors / guards themselves).
+// env.ts references "service_role"/"sb_secret_" only to REJECT such values.
+const IGNORE_FILES = new Set(['check-secrets.mjs', 'logger.ts', 'env.ts']);
 
 function walk(dir, exts, out = []) {
   for (const entry of readdirSync(dir)) {

@@ -7,6 +7,7 @@ docs-lint keeps every page linked and every link alive.
 ## Architecture
 
 - [Overview](architecture/overview.md) — system shape, layers, data flow
+- [Backend (Supabase)](architecture/backend.md) — client, auth, RLS-first DB, payments
 - [Module boundaries](architecture/module-boundaries.md) — the lint-enforced layering
 - [State management](architecture/state-management.md) — Zustand + Zod patterns
 - [Navigation](architecture/navigation.md) — expo-router conventions
