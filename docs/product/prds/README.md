@@ -2,7 +2,7 @@
 
 A PRD here is executable intent: written by PM (or anyone), reviewed at the
 weekly planning meeting, then implemented — usually by an agent via the
-`/implement-prd` command. The PRD is the contract; acceptance criteria become
+`/implement-feature` skill. The PRD is the contract; acceptance criteria become
 tests; "Proof" defines what the demo must show.
 
 Lifecycle: `draft` → `approved` → `shipped` (move nothing; update the status

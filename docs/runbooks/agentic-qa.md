@@ -11,7 +11,7 @@ skills. Requires macOS + Xcode + Node 18+.
 ```bash
 npx @swmansion/argent init     # one-time per machine
 claude                          # in the repo; Argent tools are available
-> /qa-cuj                       # walks the CUJs and reports
+> /verify-ui                      # walks the CUJs and reports
 ```
 
 Use it during development to _close the loop_: after implementing UI, have

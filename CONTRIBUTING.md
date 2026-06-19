@@ -13,7 +13,7 @@ than typing code. The guardrails do the protecting; your job is judgment.
    Branches live < 2 days. Trunk is `main` and it is always releasable.
 3. **Let the agent work.** Open the repo in Claude Code / Cursor / Codex.
    The agent reads `AGENTS.md` automatically. Useful commands:
-   `/plan-feature`, `/implement-prd`, `/qa-cuj` (see `.claude/commands/`).
+   `/plan-feature`, `/implement-feature`, `/verify-ui` (see `.claude/skills/`).
 4. **Prove it works.** `npm run verify` locally; attach screenshots or a
    simulator recording for UI changes (the PR template asks for proof).
 5. **Open a PR.** Conventional title (`feat(tasks): add bulk complete`).

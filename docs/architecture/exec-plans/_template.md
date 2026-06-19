@@ -13,7 +13,7 @@ moves). Explicit non-goals.
 ## Already exists — reuse, do not recreate
 
 File paths of existing code this work touches or builds on. The analyze
-preflight in /implement-prd checks new tasks against this list.
+preflight in /implement-feature checks new tasks against this list.
 
 - `src/…`
 

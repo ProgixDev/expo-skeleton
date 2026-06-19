@@ -1,8 +1,15 @@
 # ADR-0005 — Spec-driven development: absorb the ideas, reject the ceremony
 
-- **Status:** accepted
+- **Status:** superseded by [ADR-0006](0006-progix-operating-system.md) (2026-06-09)
 - **Date:** 2026-06-06
 - **Deciders:** platform team
+
+> **Superseded.** ADR-0006 reverses two narrow parts of this decision — it
+> introduces a `specs/` source of truth and a skills vocabulary to align with the
+> Progix OS across both skeletons. The ideas this ADR championed (the S/M/L sizing
+> gate, bounded `/clarify`, the reuse-inventory preflight, "verbosity is a cost")
+> are **retained** by ADR-0006, not discarded. Read this for the rationale behind
+> those ideas; read ADR-0006 for the current model.
 
 ## Context
 

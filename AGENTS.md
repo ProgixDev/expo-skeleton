@@ -61,26 +61,42 @@ npm run docs:lint     # docs integrity: links, orphans, taste rules
 
 ## Docs map — decide what to pull into context
 
-| Read this                                       | When                                            |
-| ----------------------------------------------- | ----------------------------------------------- |
-| `docs/index.md`                                 | You want the table of contents of all knowledge |
-| `docs/architecture/overview.md`                 | First task in this repo                         |
-| `docs/architecture/module-boundaries.md`        | Adding files/imports anywhere                   |
-| `docs/architecture/state-management.md`         | Touching Zustand stores or async data           |
-| `docs/architecture/navigation.md`               | Adding screens or deep links                    |
-| `docs/architecture/styling.md`                  | Any UI work (NativeWind patterns)               |
-| `docs/architecture/decisions/`                  | Why things are the way they are (ADRs)          |
-| `docs/architecture/exec-plans/`                 | Implementation plans (write yours here)         |
-| `docs/conventions/code-style.md`                | Writing any TypeScript                          |
-| `docs/conventions/testing.md`                   | Writing or fixing tests                         |
-| `docs/conventions/git-workflow.md`              | Branching, commits, PRs, releases               |
-| `docs/conventions/design-system.md`             | Tokens, typography, components                  |
-| `docs/conventions/environments.md`              | Env vars, EAS profiles, secrets                 |
-| `docs/product/vision.md` + `docs/product/prds/` | What we're building and why                     |
-| `docs/personas/`                                | Reviewer lenses CI applies to your diff         |
-| `docs/quality/critical-user-journeys.md`        | What must never break (QA flows)                |
-| `docs/quality/quality-score.md`                 | Current code-health notes — append yours        |
-| `docs/runbooks/`                                | Setup, release, agentic QA operations           |
+| Read this                                       | When                                             |
+| ----------------------------------------------- | ------------------------------------------------ |
+| `docs/index.md`                                 | You want the table of contents of all knowledge  |
+| `docs/architecture/overview.md`                 | First task in this repo                          |
+| `docs/architecture/module-boundaries.md`        | Adding files/imports anywhere                    |
+| `docs/architecture/state-management.md`         | Touching Zustand stores or async data            |
+| `docs/architecture/navigation.md`               | Adding screens or deep links                     |
+| `docs/architecture/styling.md`                  | Any UI work (NativeWind patterns)                |
+| `docs/architecture/decisions/`                  | Why things are the way they are (ADRs)           |
+| `docs/architecture/exec-plans/`                 | Implementation plans (write yours here)          |
+| `docs/conventions/code-style.md`                | Writing any TypeScript                           |
+| `docs/conventions/testing.md`                   | Writing or fixing tests                          |
+| `docs/conventions/git-workflow.md`              | Branching, commits, PRs, releases                |
+| `docs/conventions/design-system.md`             | Tokens, typography, components                   |
+| `docs/conventions/environments.md`              | Env vars, EAS profiles, secrets                  |
+| `docs/product/vision.md` + `docs/product/prds/` | What we're building and why                      |
+| `docs/personas/`                                | Reviewer lenses CI applies to your diff          |
+| `docs/quality/critical-user-journeys.md`        | What must never break (QA flows)                 |
+| `docs/quality/quality-score.md`                 | Current code-health notes — append yours         |
+| `docs/runbooks/`                                | Setup, release, agentic QA operations            |
+| `docs/process/`                                 | How the team works: tracks, DoD, Notion, R2R     |
+| `docs/templates/`                               | Human-facing artifacts `/progix` instantiates    |
+| `docs/reports/`                                 | Feature + daily evidence reports (Markdown)      |
+| `specs/constitution.md` + `specs/`              | Non-negotiable principles + spec-track contracts |
+
+## The Progix operating system (ADR-0006)
+
+This repo is the mobile half of the Progix OS shared with the web skeleton.
+**One front door:** a new project starts from a clone and one message — `/progix`
+— which interviews, writes the PRD, creates the GitHub repo + board, fills the
+Notion project, runs `/setup-project`, and emits the Claude Design prompt. **Four
+surfaces:** _Notion explains · GitHub tracks · Slack coordinates · the repo
+enforces_ — every fact has one home (`docs/process/notion-workspace.md`,
+Constitution Art. XI). Feature-track work lives in `specs/NNN-slug/` under
+`specs/constitution.md`; the S/M/L sizing gate still lets small work skip the
+ceremony. Full skill flow and roles: `docs/process/workflow.md`.
 
 ## Hard rules (enforced; do not negotiate in-code)
 

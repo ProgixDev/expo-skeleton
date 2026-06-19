@@ -40,6 +40,27 @@ docs-lint keeps every page linked and every link alive.
 - [Performance engineer](personas/performance-engineer.md)
 - [QA engineer](personas/qa-engineer.md)
 
+## Process (Progix OS)
+
+- [Workflow](process/workflow.md) — roles, the two tracks, working without conflicts
+- [Definition of done](process/definition-of-done.md) — the done checklist both tracks enforce
+- [Notion workspace](process/notion-workspace.md) — the four surfaces + project structure
+- [R2R — Requirement-to-Review](process/r2r.md) — how requirement churn reaches the spec
+- [Painted-door experiments](process/painted-door.md) — ship clickable experiments safely
+
+## Templates
+
+- [Templates index](templates/README.md) — the human-facing artifacts `/progix` instantiates
+
+## Reports
+
+- [Reports](reports/README.md) — feature evidence reports + daily activity reports (Markdown)
+
+## Specs & governance
+
+- [Constitution](../specs/constitution.md) — non-negotiable principles, cited by article
+- [Specs](../specs/README.md) — spec-driven development lifecycle and index
+
 ## Runbooks
 
 - [Repo setup (one-time)](runbooks/repo-setup.md)
