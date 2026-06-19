@@ -108,10 +108,12 @@ Then **Phase N** mirrors this into Next.js.
 
 ## Phase 4 — Claude Design prompts (professional) → read [`04-design-and-prompting.md`](docs/research/04-design-and-prompting.md)
 
-- [ ] Integrate **`ui-ux-pro-max`** skill into `.claude/skills/`.
-- [ ] Rebuild `docs/templates/claude-design-prompt.md` into the **professional brief** (template in the brief): ROLE persona, product surface with **realistic data**, named/cultural reference anchors, **design-token contract**, component constraints, **all required states** (empty/loading/error/onboarding/permission/paywall/account-deletion), motion+haptics, a11y, and an explicit **DO-NOT list** (no Inter/Roboto, no purple-on-white gradients, no Tailwind defaults, no lorem, no shadow soup).
-- [ ] `design-prompt` skill: runs `ui-ux-pro-max --design-system` → persists `design-system/MASTER.md` + per-page overrides → emits the brief. Multi-pass + self-critique loop.
-- [ ] `docs/design/quality-bar.md` — what "professional, not amateur" means here, with reject-worthy examples + the premium-UI checklist.
+- [x] Rebuilt `docs/templates/claude-design-prompt.md` into the **professional brief**: ROLE persona, product surface with **realistic data**, named/cultural reference anchors, **design-token contract**, all required states (empty/loading/error/onboarding/permission/paywall/account-deletion), motion+haptics, a11y, multi-pass + 3-directions + self-critique, and an explicit **DO-NOT list** (no Inter/Roboto, no purple-on-white gradients, no Tailwind defaults, no lorem, no shadow soup).
+- [x] `docs/design/quality-bar.md` — premium vs vibe-coded checklist + reject-worthy tells + a per-app **Rebrand checklist**. Flags that the skeleton's own `#6366F1`/Inter defaults ARE the amateur tell.
+- [x] Rewrote the `design-prompt` skill: de-Notioned, reads the quality bar + token contract, sources product context (PRD or AskUserQuestion), runs **`ui-ux-pro-max` if installed** (`--design-system`) else proposes a distinctive palette/font, fills the brief, self-critiques.
+- [x] Aligned `docs/conventions/design-system.md` (token-contract framing, dark-mode rule, "rebrand the placeholder indigo" callout) + fixed the painted-door "coming soon" conflict with store rule 2.1.
+- [~] **`ui-ux-pro-max` referenced as an optional install** (its CSV+Python DB isn't vendored — kept lean per the "don't over-build" research). The skill calls it when present.
+- **⚠️ Per app:** run `/design-prompt`, then rebrand (palette + font + identity) before building UI — default indigo/Inter is the #1 AI tell.
 
 ## Phase 5 — Docs for AI legibility → read [`05-agent-skill-architecture.md`](docs/research/05-agent-skill-architecture.md)
 
