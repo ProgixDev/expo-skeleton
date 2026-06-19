@@ -61,19 +61,20 @@ Then **Phase N** mirrors this into Next.js.
 
 **Principle: the client is hostile; the real boundary is the server.** Everything here is enforced (lint rule / hook / test), not advice.
 
-- [ ] `docs/security/threat-model.md` + `docs/security/checklist.md` as a **queryable rule file** (id | severity | rule | why | verify) and a **MASVS coverage matrix** in `SECURITY.md`.
-- [ ] **Three storage modules**: `secureStorage` (expo-secure-store), `fastStorage` (MMKV, key sealed in SecureStore), AsyncStorage deprecated for secrets. **ESLint-ban** raw AsyncStorage/MMKV imports outside the module.
-- [ ] SecureStore defaults: `WHEN_UNLOCKED` (or `*_THIS_DEVICE_ONLY` high-sensitivity); **>2KB session adapter** (LargeSecureStore — shared with Phase 2); `deleteItemAsync` on logout; Android backup exclusion; `usesNonExemptEncryption:false`.
-- [ ] **Secrets lint rule**: reject `EXPO_PUBLIC_*` names matching `SECRET|PRIVATE|SERVICE_ROLE|TOKEN|PASSWORD`. BFF/proxy template for all third-party secret keys.
+- [x] `docs/security/threat-model.md` + `docs/security/checklist.md` (queryable `SEC-*` rule file: id | severity | rule | verify | enforced-by) and a **MASVS coverage matrix** in `SECURITY.md`.
+- [x] **Storage tiers** `src/shared/lib/storage/`: `secureStorage` (expo-secure-store), `LargeSecureStore` (AES + Keychain, >2KB), `appStorage` (non-sensitive). **ESLint-bans** direct AsyncStorage/expo-secure-store/mmkv imports outside the folder; tasks store refactored through it. _(MMKV fast-tier deferred — needs a dev build; AsyncStorage covers non-secret state for now.)_
+- [x] SecureStore defaults: `WHEN_UNLOCKED` + `deviceOnly` option; `remove()` on logout; `LargeSecureStore` for the Supabase session. _(Android backup exclusion + `usesNonExemptEncryption` = Phase 2 config wiring.)_
+- [x] **Secret guard** `scripts/check-secrets.mjs` (in `verify` + pre-commit): rejects `EXPO_PUBLIC_*` secret-looking names + hardcoded `sk_/sb_secret_/service_role/JWT` literals in source AND the built `dist/` bundle. _(BFF/proxy template = Phase 2.)_
+- [x] **Deep-link allowlist gate**: `src/shared/lib/deep-link.ts` (host+route allowlist, parse-in-try/catch, safe fallback, no open redirect) + `src/app/+native-intent.tsx` + tests.
+- [x] **Redacting logger** `src/shared/lib/logger.ts` (tokens/PII/JWTs scrubbed) — supports "never log secrets".
+- [x] **Local gates**: gitleaks wired into pre-commit (`.gitleaks.toml`, optional binary) + `secrets:check` in `verify`. _(ESLint security plugins / Semgrep pre-push deferred — `no-restricted-imports` + check-secrets cover the critical cases.)_
 - [ ] Transport: ATS on / Android cleartext off via config plugin; enforce TLS.
-- [ ] OAuth safety: system browser (`expo-web-browser`/`expo-auth-session`), **ban embedded WebView**; **verified Universal/App Link auth callback** (not custom scheme); redact tokens from logs + Sentry `beforeSend`.
-- [ ] **Deep-link allowlist gate** in `+native-intent.tsx`: parse-in-try/catch, host+route allowlist, safe-error fallback, no open redirects.
-- [ ] Supply chain: committed lockfile + `--frozen-lockfile` + pnpm `minimumReleaseAge`; `npx expo install` for native deps; **Socket.dev** + `pnpm audit`.
-- [ ] **Local gates (Lefthook or keep Husky)**: pre-commit gitleaks + ESLint security stack (`eslint-plugin-security` + `-no-secrets` + `-react-native`) + typecheck; pre-push Semgrep + audit.
-- [ ] `expo-screen-capture` on PII/payment screens.
-- [ ] Security tests: `__tests__/security/` proving boundaries (deep-link rejection, secret-store usage, validation).
-- [ ] **Strongly recommended (dev build):** `@expo/app-integrity` (Play Integrity + App Attest, server-verified) behind a wrapper; **freeRASP** (root/jailbreak/hook/tamper) wired to graduated responses; MobSF + `hermes-dec` secret-string check at release; biometric vault tier.
-- [ ] **Nice-to-have:** SPKI cert pinning (`react-native-ssl-public-key-pinning`, ≥2 pins, OTA, toggleable); pre-Hermes obfuscation.
+- [ ] OAuth safety: system browser, ban embedded WebView, verified-link auth callback (Phase 2 with Supabase).
+- [ ] Supply chain: `--frozen-lockfile` + `minimumReleaseAge` + Socket.dev (backlog).
+- [ ] `expo-screen-capture` on PII/payment screens (backlog).
+- [ ] **Strongly recommended (dev build):** `@expo/app-integrity` attestation; freeRASP; MobSF + `hermes-dec` at release; biometric vault tier.
+- [ ] **Nice-to-have:** SPKI cert pinning (toggleable, OTA); pre-Hermes obfuscation.
+- **⚠️ On your Mac:** run `npx expo install expo-secure-store react-native-get-random-values && npm i aes-js && npm i -D @types/aes-js` (pins added to package.json — reconcile with `npx expo install --fix`), then `npm run verify` to confirm lint/typecheck/test pass (the Linux sandbox can't run them).
 
 ## Phase 2 — Supabase secure reference (Expo) → read [`03-supabase-security.md`](docs/research/03-supabase-security.md)
 
