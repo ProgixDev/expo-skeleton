@@ -54,6 +54,13 @@ docs-lint keeps every page linked and every link alive.
 - [Security checklist](security/checklist.md) — the enforceable rule catalog (`SEC-*` rule IDs)
 - Coverage matrix: [SECURITY.md](../SECURITY.md) (repo root)
 
+## Store compliance
+
+- [Apple App Review](store/apple-app-review.md) — the rules that reject apps like ours (with guideline numbers)
+- [Google Play](store/google-play.md) — data safety, permissions, target API, billing, deletion
+- [Store-readiness checklist](store/checklist.md) — `STORE-*` rule catalog (the `/store-readiness` skill cites these)
+- [Submission runbook](store/submission-runbook.md) — step-by-step pre-submission process
+
 ## Research (upgrade evidence base)
 
 - [Research briefs](research/README.md) — cited 2025–2026 research grounding the skeleton upgrade (security, store compliance, Supabase, design, skills, stack, community)

@@ -6,3 +6,7 @@ project_id = "expo-skeleton"
 # The webhook carries no Supabase JWT — it authenticates with a shared secret
 # header that the function verifies itself. Do NOT enable verify_jwt here.
 verify_jwt = false
+
+[functions.delete-account]
+# Called by a signed-in user — require a valid Supabase JWT (the default).
+verify_jwt = true

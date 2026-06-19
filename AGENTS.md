@@ -86,6 +86,7 @@ npm run docs:lint     # docs integrity: links, orphans, taste rules
 | `docs/reports/`                                 | Feature + daily evidence reports (Markdown)           |
 | `docs/research/`                                | Cited 2025–2026 research grounding the upgrade        |
 | `docs/security/`                                | Auth, storage, secrets, deep links, network, payments |
+| `docs/store/`                                   | App Store / Play compliance + submission runbook      |
 | `specs/constitution.md` + `specs/`              | Non-negotiable principles + spec-track contracts      |
 
 ## Operating model — repo-only (ADR-0008, partially supersedes ADR-0006)

@@ -14,7 +14,7 @@
  */
 
 /** Routes a deep link is allowed to resolve to. Keep in sync with `src/app/`. */
-const ALLOWED_ROUTES = ['/', '/not-found'] as const;
+const ALLOWED_ROUTES = ['/', '/sign-in', '/account', '/not-found'] as const;
 
 /** Where unknown / malformed / hostile links land. Must be an allowed route. */
 export const SAFE_FALLBACK_ROUTE = '/not-found';

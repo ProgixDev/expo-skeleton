@@ -18,6 +18,8 @@ type AuthState = {
   signIn: (email: string, password: string) => Promise<Result>;
   signUp: (email: string, password: string) => Promise<Result>;
   signOut: () => Promise<void>;
+  /** Permanently delete the account + all its data (store-compliance requirement). */
+  deleteAccount: () => Promise<Result>;
 };
 
 function statusFor(session: Session | null): Status {
@@ -75,6 +77,19 @@ export const useAuthStore = create<AuthState>()((set) => ({
     // supabase-js clears the LargeSecureStore session via its storage adapter.
     await supabase.auth.signOut();
     set({ session: null, status: 'unauthenticated', error: null });
+  },
+
+  deleteAccount: async () => {
+    // The Edge Function validates the JWT and deletes the user + cascaded data.
+    // `invoke` attaches the current session's Authorization header automatically.
+    const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+    if (error) {
+      set({ error: error.message });
+      return { ok: false, error: error.message };
+    }
+    await supabase.auth.signOut();
+    set({ session: null, status: 'unauthenticated', error: null });
+    return { ok: true };
   },
 }));
 
