@@ -42,9 +42,11 @@ American spelling: American. Sentence case for headings and buttons
 
 ## Component policy
 
-`shared/ui` is the kit: `AppText`, `Button` (primary/secondary/ghost/
-destructive × md/sm, loading state), `Screen`, `TextField`. Extending the kit
-beats local styling; new primitives need a quick design sign-off and tests.
+`shared/ui` is the **lean** kit: `AppText`, `Button` (primary/secondary/ghost/
+destructive × md/sm, loading state), `Screen`, `TextField`, `Card`, `EmptyState`,
+`Skeleton`. It grows **on demand** via `/new-component`, not by pre-building a
+big library (the "lean core + generator" decision — ADR/roadmap). Extending the
+kit beats local styling; new primitives need a quick design sign-off and tests.
 Accessibility is part of the definition of done: roles, labels, 44pt touch
 targets, `accessibilityState` for toggles — see the
 [UX reviewer persona](../personas/ux-reviewer.md).
