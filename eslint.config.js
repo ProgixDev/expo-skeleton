@@ -71,15 +71,30 @@ module.exports = defineConfig([
           rules: [{ target: ['feature'], allow: ['index.ts', 'index.tsx'] }],
         },
       ],
-    },
-  },
-  {
-    // Routes must stay thin: no business logic imports beyond feature APIs.
-    files: ['src/app/**/*.tsx'],
-    rules: {
+      // Storage libraries may only be touched through the sanctioned wrapper
+      // (src/shared/lib/storage). This is a SECURITY boundary: it forces every
+      // "is this safe to persist?" decision through one place and keeps secrets
+      // out of plaintext AsyncStorage. See docs/research/01-mobile-security.md §1.
+      // (@react-navigation is also banned: SDK 56 expo-router no longer uses it.)
       'no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@react-native-async-storage/async-storage',
+              message:
+                'Do not import AsyncStorage directly (plaintext on disk). Use @/shared/lib/storage — appStorage / asyncStorageBackend for non-sensitive data, secureStorage / LargeSecureStore for secrets.',
+            },
+            {
+              name: 'expo-secure-store',
+              message:
+                'Do not import expo-secure-store directly. Use @/shared/lib/storage (secureStorage / LargeSecureStore).',
+            },
+            {
+              name: 'react-native-mmkv',
+              message: 'Do not import react-native-mmkv directly. Use @/shared/lib/storage.',
+            },
+          ],
           patterns: [
             {
               group: ['@react-navigation/*'],
@@ -90,6 +105,11 @@ module.exports = defineConfig([
         },
       ],
     },
+  },
+  {
+    // The storage wrapper itself is the one place allowed to touch the libs.
+    files: ['src/shared/lib/storage/**'],
+    rules: { 'no-restricted-imports': 'off' },
   },
   prettierConfig,
 ]);

@@ -20,13 +20,16 @@
     "e2e:ios": "maestro test .maestro/flows",
     "doctor": "npx expo-doctor",
     "docs:lint": "node scripts/docs-lint.mjs",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run docs:lint",
+    "secrets:check": "node scripts/check-secrets.mjs",
+    "secrets:scan": "gitleaks dir --no-banner --redact || echo 'gitleaks not installed — skipping deep scan (brew install gitleaks). check-secrets still ran.'",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run docs:lint && npm run secrets:check",
     "new:feature": "node scripts/new-feature.mjs",
     "prepare": "husky"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "aes-js": "^3.1.2",
     "clsx": "^2.1.1",
     "expo": "~56.0.9",
     "expo-constants": "~56.0.17",
@@ -34,9 +37,11 @@
     "expo-image": "~56.0.10",
     "expo-linking": "~56.0.13",
     "expo-router": "~56.2.9",
+    "expo-secure-store": "~15.0.0",
     "expo-splash-screen": "~56.0.10",
     "expo-status-bar": "~56.0.4",
     "expo-system-ui": "~56.0.5",
+    "react-native-get-random-values": "~1.11.0",
     "nativewind": "^4.2.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -55,6 +60,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@testing-library/react-native": "^13.3.3",
+    "@types/aes-js": "^3.1.4",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
     "eslint": "^9.36.0",
@@ -84,6 +90,7 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "exclude": [
+          "aes-js",
           "clsx",
           "tailwind-merge",
           "zod"

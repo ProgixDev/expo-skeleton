@@ -1,8 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { makeId } from '@/shared/lib/id';
+// Tasks hold no secrets/PII → the plaintext (non-secure) tier is correct here.
+import { asyncStorageBackend } from '@/shared/lib/storage';
 
 import { TaskListSchema, TaskTitleSchema, type Task } from './schema';
 
@@ -45,7 +46,7 @@ export const useTasksStore = create<TasksState>()(
     }),
     {
       name: 'tasks-store-v1',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => asyncStorageBackend),
       // Validate rehydrated data — corrupt storage must never crash the app.
       merge: (persisted, current) => {
         const parsed = TaskListSchema.safeParse(

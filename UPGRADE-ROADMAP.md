@@ -48,13 +48,14 @@ Then **Phase N** mirrors this into Next.js.
 
 ---
 
-## Phase 0 — Cleanup (both repos)
+## Phase 0 — Cleanup (Expo ✅ done on branch `chore/skeleton-upgrade`; Next.js pending)
 
-- [ ] Delete `.github/workflows/*` cloud automation (ci, claude-pr-review, ship-report, e2e-ios, agentic-qa, deploy-preview, release, continuous-deploy).
-- [ ] Remove Notion + Slack: `.mcp.json` Notion server, `docs/process/notion-workspace.md`, Notion/Slack refs in `docs/process/workflow.md`, Notion-targeted templates.
-- [ ] Keep & verify local gates: `npm run verify` + Husky pre-commit still pass.
-- [ ] Rewrite `docs/process/workflow.md` to a **repo-only** operating model (drop the four-surface rule).
-- [ ] Prune `.claude/` skills/commands that only drove Notion/GitHub orchestration; keep artifact-producing ones.
+- [x] Delete `.github/workflows/*` cloud automation (8 workflows) + orphaned ship-report PDF css.
+- [x] Remove Notion server from `.mcp.json` (kept Argent); delete `docs/process/notion-workspace.md`; fix dangling refs across docs/skills.
+- [x] Keep & verify local gates: `docs:lint` + `format:check` green; Husky pre-commit intact. (`lint`/`test` not runnable in the Linux sandbox — native bindings installed for macOS; run on the Mac.)
+- [x] Rewrite `docs/process/workflow.md` to a **repo-only** model; record as **ADR-0008**; mark ADR-0006 partially superseded; update AGENTS.md + docs/index.md.
+- [~] Prune orchestration-only skills — **deferred to Phase 6** (progix/meeting-intake/feature-report de-Notioned during the skill rebuild).
+- [ ] Next.js: apply the same Phase 0 cleanup.
 
 ## Phase 1 — Security foundation (Expo) → read [`01-mobile-security.md`](docs/research/01-mobile-security.md)
 

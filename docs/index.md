@@ -47,6 +47,12 @@ docs-lint keeps every page linked and every link alive.
 - [R2R — Requirement-to-Review](process/r2r.md) — how requirement churn reaches the spec
 - [Painted-door experiments](process/painted-door.md) — ship clickable experiments safely
 
+## Security
+
+- [Threat model](security/threat-model.md) — assets, trust boundaries, attacker classes, data classification
+- [Security checklist](security/checklist.md) — the enforceable rule catalog (`SEC-*` rule IDs)
+- Coverage matrix: [SECURITY.md](../SECURITY.md) (repo root)
+
 ## Research (upgrade evidence base)
 
 - [Research briefs](research/README.md) — cited 2025–2026 research grounding the skeleton upgrade (security, store compliance, Supabase, design, skills, stack, community)

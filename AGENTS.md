@@ -61,31 +61,32 @@ npm run docs:lint     # docs integrity: links, orphans, taste rules
 
 ## Docs map — decide what to pull into context
 
-| Read this                                       | When                                             |
-| ----------------------------------------------- | ------------------------------------------------ |
-| `docs/index.md`                                 | You want the table of contents of all knowledge  |
-| `docs/architecture/overview.md`                 | First task in this repo                          |
-| `docs/architecture/module-boundaries.md`        | Adding files/imports anywhere                    |
-| `docs/architecture/state-management.md`         | Touching Zustand stores or async data            |
-| `docs/architecture/navigation.md`               | Adding screens or deep links                     |
-| `docs/architecture/styling.md`                  | Any UI work (NativeWind patterns)                |
-| `docs/architecture/decisions/`                  | Why things are the way they are (ADRs)           |
-| `docs/architecture/exec-plans/`                 | Implementation plans (write yours here)          |
-| `docs/conventions/code-style.md`                | Writing any TypeScript                           |
-| `docs/conventions/testing.md`                   | Writing or fixing tests                          |
-| `docs/conventions/git-workflow.md`              | Branching, commits, PRs, releases                |
-| `docs/conventions/design-system.md`             | Tokens, typography, components                   |
-| `docs/conventions/environments.md`              | Env vars, EAS profiles, secrets                  |
-| `docs/product/vision.md` + `docs/product/prds/` | What we're building and why                      |
-| `docs/personas/`                                | Reviewer lenses the `/review` skill applies      |
-| `docs/quality/critical-user-journeys.md`        | What must never break (QA flows)                 |
-| `docs/quality/quality-score.md`                 | Current code-health notes — append yours         |
-| `docs/runbooks/`                                | Setup, release, agentic QA operations            |
-| `docs/process/`                                 | How the team works: the two tracks, DoD, R2R     |
-| `docs/templates/`                               | Human-facing artifacts skills instantiate        |
-| `docs/reports/`                                 | Feature + daily evidence reports (Markdown)      |
-| `docs/research/`                                | Cited 2025–2026 research grounding the upgrade   |
-| `specs/constitution.md` + `specs/`              | Non-negotiable principles + spec-track contracts |
+| Read this                                       | When                                                  |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| `docs/index.md`                                 | You want the table of contents of all knowledge       |
+| `docs/architecture/overview.md`                 | First task in this repo                               |
+| `docs/architecture/module-boundaries.md`        | Adding files/imports anywhere                         |
+| `docs/architecture/state-management.md`         | Touching Zustand stores or async data                 |
+| `docs/architecture/navigation.md`               | Adding screens or deep links                          |
+| `docs/architecture/styling.md`                  | Any UI work (NativeWind patterns)                     |
+| `docs/architecture/decisions/`                  | Why things are the way they are (ADRs)                |
+| `docs/architecture/exec-plans/`                 | Implementation plans (write yours here)               |
+| `docs/conventions/code-style.md`                | Writing any TypeScript                                |
+| `docs/conventions/testing.md`                   | Writing or fixing tests                               |
+| `docs/conventions/git-workflow.md`              | Branching, commits, PRs, releases                     |
+| `docs/conventions/design-system.md`             | Tokens, typography, components                        |
+| `docs/conventions/environments.md`              | Env vars, EAS profiles, secrets                       |
+| `docs/product/vision.md` + `docs/product/prds/` | What we're building and why                           |
+| `docs/personas/`                                | Reviewer lenses the `/review` skill applies           |
+| `docs/quality/critical-user-journeys.md`        | What must never break (QA flows)                      |
+| `docs/quality/quality-score.md`                 | Current code-health notes — append yours              |
+| `docs/runbooks/`                                | Setup, release, agentic QA operations                 |
+| `docs/process/`                                 | How the team works: the two tracks, DoD, R2R          |
+| `docs/templates/`                               | Human-facing artifacts skills instantiate             |
+| `docs/reports/`                                 | Feature + daily evidence reports (Markdown)           |
+| `docs/research/`                                | Cited 2025–2026 research grounding the upgrade        |
+| `docs/security/`                                | Auth, storage, secrets, deep links, network, payments |
+| `specs/constitution.md` + `specs/`              | Non-negotiable principles + spec-track contracts      |
 
 ## Operating model — repo-only (ADR-0008, partially supersedes ADR-0006)
 
@@ -112,6 +113,12 @@ Full skill flow and roles: `docs/process/workflow.md`. The upgrade in progress
 - **State:** Zustand stores live in `features/*/model/store.ts`; subscribe via
   selectors; never store derived data. `process.env` is read only by
   `src/shared/lib/env.ts`.
+- **Storage & secrets (security boundary):** all persistence goes through
+  `@/shared/lib/storage` — `secureStorage`/`LargeSecureStore` for secrets/PII,
+  `appStorage` for non-sensitive state. Direct `AsyncStorage`/`expo-secure-store`/
+  `mmkv` imports are ESLint-banned outside that folder. No secrets in source or
+  `EXPO_PUBLIC_*` (it's plaintext in the bundle) — `npm run secrets:check`
+  enforces this. See `docs/security/checklist.md`.
 - **UI:** className + NativeWind only — no inline `style` for static styling,
   no `StyleSheet.create` in features. Use `cn()` for conditionals. Use shared
   `AppText`/`Button`/`Screen`/`TextField` primitives; extend `shared/ui`
@@ -127,8 +134,8 @@ Full skill flow and roles: `docs/process/workflow.md`. The upgrade in progress
 - **Never** edit `ios/`/`android/` by hand (CNG owns them), commit secrets,
   use `any` without a `// why:` comment, or add a dependency without checking
   `npx expo install` compatibility + an ADR for anything architectural.
-- **Conventional Commits required** — automation (changelog, ship report,
-  Notion page) is generated from them.
+- **Conventional Commits required** — the changelog and release notes are
+  generated from them, and `commitlint` enforces the format on commit.
 
 ## Pull requests — proof of work
 
