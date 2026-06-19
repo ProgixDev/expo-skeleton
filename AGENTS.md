@@ -90,6 +90,10 @@ npm run docs:lint     # docs integrity: links, orphans, taste rules
 | `docs/design/`                                  | The quality bar (premium vs vibe-coded) for any UI    |
 | `specs/constitution.md` + `specs/`              | Non-negotiable principles + spec-track contracts      |
 
+Docs carry `read-when` / `owns` front-matter so you can tell if a file is relevant before reading it
+(security, store, design, research, and core architecture docs already do). Prefer just-in-time
+retrieval (grep/glob + the `read-when` line) over loading everything up front.
+
 ## Operating model — repo-only (ADR-0008, partially supersedes ADR-0006)
 
 **The repo is the only operating surface.** There is no Notion/Slack/GitHub-Actions

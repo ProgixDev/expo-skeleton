@@ -1,3 +1,9 @@
+---
+id: architecture-overview
+read-when: Your first task in this repo, or when you need the system shape, layers, and data flow.
+owns: The high-level architecture — stack, layers (app/features/shared), and how data moves.
+---
+
 # Architecture Overview
 
 ## Philosophy

@@ -1,3 +1,9 @@
+---
+id: architecture-module-boundaries
+read-when: Adding files or imports anywhere — the lint-enforced layering rules live here.
+owns: The app → features → shared layering and the boundaries/no-restricted-imports rules.
+---
+
 # Module Boundaries
 
 The single most important rule in the repo. It is _statically enforced_ by
