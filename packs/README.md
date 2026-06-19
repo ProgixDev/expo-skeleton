@@ -49,6 +49,20 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 | `media-upload`          | ✅     | expo-image-picker + PRIVATE Supabase Storage bucket, per-user folder RLS, signed URLs, upload hook                                | none                   | build                                   |
 | `places-search`         | ✅     | Address autocomplete + reverse geocode via free OSM Nominatim, debounced hook; feeds `nav-turn-by-turn`                           | none (Nominatim)       | build                                   |
 | `analytics`             | ✅     | PostHog typed event layer, screen tracking, ATT-free, PII guard, no-op without a key                                              | none (no-op in dev)    | build                                   |
+| `ai-assistant`          | ✅     | Streaming LLM chat via a Supabase Edge Function (key server-side), RLS history, mock stream when key-free                          | none (mock in dev)     | build                                   |
+| `forms`                 | ✅     | react-hook-form + Zod resolver + ControlledField bound to @/shared/ui (primitive, no route)                                       | none                   | build                                   |
+| `offline-sync`          | ✅     | Network-state hook + persisted optimistic mutation queue that replays on reconnect (primitive)                                    | none                   | build                                   |
+| `app-lifecycle`         | ✅     | Force-update/min-version gate + maintenance mode + timed review prompt, driven by a public config row                             | none                   | build                                   |
+| `i18n`                  | ✅     | Lean localization: typed catalogs, t() interpolation, RTL, persisted locale (no heavy lib)                                        | none                   | build                                   |
+| `feature-flags`         | ✅     | Supabase-driven remote flags + deterministic % rollout, cached, useFlag (primitive)                                              | none                   | build                                   |
+| `activity-inbox`        | ✅     | In-app notifications: table + RLS, unread badge, realtime arrival, mark-read; pairs with push                                     | none                   | build                                   |
+| `social-graph`          | ✅     | Follow/followers: edges + RLS, optimistic toggle, counts, isFollowing                                                             | none                   | build                                   |
+| `comments`              | ✅     | Threaded comments on any entity: table + RLS, paginated, optimistic add/delete                                                    | none                   | build                                   |
+| `search`                | ✅     | Postgres full-text search (tsvector + GIN) + ranked RPC, debounced hook                                                           | none                   | build                                   |
+| `maps-view`             | ✅     | react-native-maps screen + key-free nearby query (bounding-box + haversine) over any lat/lng table                               | none (Apple Maps)      | build                                   |
+| `booking-calendar`      | ✅     | Resources/availability/bookings + RLS, DB-enforced no-double-book, open-slot query, book/cancel                                   | none                   | build                                   |
+| `cart-checkout`         | ✅     | Persisted cart + products/orders + place_order RPC that prices server-side (never trusts client)                                  | none                   | build                                   |
+| `ratings-reviews`       | ✅     | Star ratings + reviews on any entity: RLS (one per user), average+count RPC, submit/list                                          | none                   | build                                   |
 
 ## Anatomy of a pack
 

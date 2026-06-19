@@ -111,8 +111,11 @@ Full skill flow and roles: `docs/process/workflow.md`. The upgrade in progress
 
 ## Feature packs (`packs/`)
 
-`packs/` is a library of ready-made, **logic-first** feature modules (payments, barcode scan, chat,
-feed/reels, navigation, profile/settings, auth screens, tab bars). It is **excluded from the app**
+`packs/` is a library of ready-made, **logic-first** feature modules across three groups:
+**features** (payments, barcode scan, chat, feed/reels, navigation, profile/settings, auth screens,
+tab bars, push, media upload, places, analytics, ai-assistant, activity-inbox, social-graph,
+comments, search, maps, booking, cart-checkout, ratings-reviews); **infra primitives** (forms,
+offline-sync, app-lifecycle, i18n, feature-flags). It is **excluded from the app**
 (tsconfig/ESLint/Jest) — parked and inactive, adding zero weight until you opt one in with
 **`/add-feature <pack>`**. Each pack ships the working background (data/state/services/migrations/
 hooks) plus a **minimal, swappable UI** the design pass replaces. See `packs/README.md`. Do not
