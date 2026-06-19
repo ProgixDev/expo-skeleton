@@ -105,9 +105,9 @@ Full skill flow and roles: `docs/process/workflow.md`. The upgrade in progress
 (security, store-compliance, Supabase, design, skills) is tracked in
 `UPGRADE-ROADMAP.md` and grounded in the cited briefs under `docs/research/`.
 
-> Note: the old `/progix` "four-surface" front door (ADR-0006) is being retired;
-> some skills still reference Notion/GitHub orchestration and are de-Notioned during
-> the Phase 5/6 rebuild.
+> Note: the old `/progix` "four-surface" front door (ADR-0006) and `/meeting-intake`
+> (Notion R2R) have been **removed** (ADR-0008). New projects start by cloning and
+> running `/setup-project`.
 
 ## Hard rules (enforced; do not negotiate in-code)
 

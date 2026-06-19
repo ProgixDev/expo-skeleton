@@ -22,8 +22,9 @@ Governance: `specs/constitution.md`. Operating model: repo-only (ADR-0008). Flow
 | `/feature-report`    | reporting    | Markdown evidence report → `docs/reports/NNN-slug.md`.                                           |
 | `/encode-lesson`     | flywheel     | Turns a correction into permanent repo machinery (lint/test/hook/doc).                           |
 
-**Legacy (de-Notion / rebuild pending):** `/progix`, `/setup-project`, `/meeting-intake` still
-reference the old Notion/GitHub orchestration (ADR-0006) and are being retired — see ADR-0008.
+**Retired:** the Notion-era `/progix` (Notion+GitHub project front door) and `/meeting-intake`
+(Notion R2R) skills were removed (ADR-0008, repo-only). `/setup-project` (clone init) and
+`/feature-report` (in-repo evidence report) are kept — they're repo-only and Notion-free.
 
 **Tooling note (Expo):** all skills use `npm` (not pnpm), Maestro + **Argent** for UI verification
 (not Playwright), the `model/ui/lib` slice anatomy, and `app.config.ts` for app identity. Reports are
