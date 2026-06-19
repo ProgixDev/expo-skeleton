@@ -149,11 +149,14 @@ Same spine, web-adapted (read the same briefs):
 
 - [x] **Phase 0 cleanup** (done on `chore/skeleton-upgrade` in NEXTJS-SKELETON): removed 5 cloud workflows + Notion rule/doc/templates + daily-reporter agent; repo-only **ADR-0006**; fixed dead links; gates (`check:docs`/`check:typography`) green.
 - [x] **Phase 1 web security**: security headers in `next.config.ts` (HSTS/X-Frame/nosniff/Referrer/Permissions + report-only CSP, `poweredByHeader:false`); `scripts/check-secrets.mjs` (NEXT*PUBLIC*_ guard + bundle scan) in `verify` + pre-commit; `.gitleaks.toml`; `src/lib/redirect.ts` open-redirect gate + test; redacting `src/lib/logger.ts`; `SECURITY.md` coverage matrix + `docs/security/{threat-model,checklist}.md` (`SEC-_`).
-- [ ] **Supabase**: SSR auth (server client + cookies via `@supabase/ssr`), RLS-first (same migrations/policies), protected routes/middleware, the example feature persisted, asymmetric JWT.
-- [ ] **Web production readiness** (web equivalent of store compliance): `robots.txt`, `sitemap.xml`, `manifest.json`, `not-found.tsx` + `error.tsx`, full metadata + OG/Twitter, JSON-LD, canonical URLs, **PostHog + Sentry** (web SDKs), Core Web Vitals budget, a11y audit in `verify`.
-- [ ] **Design prompts**: same rebuild, web screen inventory (404/500/empty/loading/auth).
-- [ ] **Docs + skills**: mirror Phases 5–6; `/daily-report`, `/security-review`, `/new-component` (web); `nextjs-harness` plugin.
-- [ ] **Shared UI**: lean core (shadcn/ui already there) + generator; same token pipeline.
+- [x] **Supabase SSR**: `@supabase/ssr` browser+server+middleware clients, cookie session refresh + protected-route guard (`src/middleware.ts`), the same RLS-first migrations (0001-0004) + pgTAP, auth slice (sign-in form + server actions), **account deletion** (admin service-role), ADR-0007 + `backend.md`. _(Asymmetric JWT = adopt per project.)_
+- [x] **Web production readiness**: `robots.ts`, `sitemap.ts`, `manifest.ts`, `not-found.tsx`, `global-error.tsx`, full metadata + OG/Twitter + canonical + JSON-LD, `src/core/site.ts`, **`scripts/check-web-readiness.mjs` (`pnpm web:check`)** + `docs/web/checklist.md` (`WEB-*`). _(PostHog + Sentry + Core Web Vitals documented as the recommended wiring.)_
+- [x] **Design prompts**: rebuilt professional brief (web screen inventory: 404/500/empty/loading/auth/pricing) + `docs/design/quality-bar.md` (flags the default shadcn theme as the tell) + rewritten `/design-prompt` skill.
+- [x] **Skills**: French `/daily-report` (by project + client message), `/security-review` (`SEC-*`), `/new-component` (shadcn), `/web-readiness`. _(Plugin packaging = optional backlog.)_
+- [x] **Shared UI**: shadcn/ui core + added `Skeleton` + `EmptyState` (token-only, accessible, tested) + `/new-component` generator.
+- **⚠️ On your Mac:** `pnpm install` (adds @supabase/ssr + supabase-js), set `NEXT_PUBLIC_SUPABASE_*` in `.env.local`, then `pnpm verify`; `supabase db reset && supabase test db`. Run `pnpm web:check` before launch.
+
+**Both skeletons upgraded.** Each lives on its own `chore/skeleton-upgrade` branch (main untouched), ready to review + merge.
 
 ---
 
