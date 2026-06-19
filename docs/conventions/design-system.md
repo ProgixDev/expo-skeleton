@@ -1,9 +1,22 @@
 # Design System
 
-Single source of truth: **`tailwind.config.js`**. Designers own this file's
-token values; engineers own its structure. The imperative mirror
+Single source of truth: **`tailwind.config.js`** — the **token contract**. Designers own this
+file's token values; engineers own its structure. The imperative mirror
 (`src/shared/theme/colors.ts`) must stay in sync — PRs touching one must
-touch both (reviewer + persona checklist item).
+touch both (reviewer + persona checklist item). The quality the design + build passes must clear
+is [`docs/design/quality-bar.md`](../design/quality-bar.md).
+
+> **The default `brand-*` ramp is placeholder indigo (`#6366F1`) and the default font is Inter —
+> the two most recognizable "vibe-coded" AI tells. Rebrand both per app** (keep the role structure;
+> see the quality-bar "Rebrand checklist"). Tokens are roles (semantic) backed by hex (primitive);
+> components reference roles, never raw hex — that semantic layer is what makes rebrand + dark-mode
+> possible.
+
+## Dark mode
+
+Design light and dark **together**, not one inferred from the other: a dark-grey base (≈`#121212`
+class), **desaturated** accents (saturated colors vibrate and fail contrast on dark), and elevation
+expressed as tonal surface lightening — never inverted light-mode hex.
 
 ## Tokens
 
@@ -39,5 +52,8 @@ targets, `accessibilityState` for toggles — see the
 ## Painted-door experiments
 
 Designers may ship UI with a no-op backend behind an analytics event to test
-demand — the UI lives in the feature's `ui/`, returns a “coming soon” state,
-and must be flagged in the PRD + removed or wired within two sprints.
+demand — the UI lives in the feature's `ui/`, shows an honest interim state,
+and must be flagged in the PRD + removed or wired within two sprints. **Never
+ship a placeholder / “coming soon” state in a store build** — Apple 2.1 rejects
+it and `npm run store:check` flags it (`docs/store/checklist.md`). Painted-door
+experiments are for internal/TestFlight demand-testing, not App Store review.

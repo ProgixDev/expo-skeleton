@@ -1,17 +1,60 @@
 ---
 name: design-prompt
-description: Generate the Claude Design prompt as a clean, copy-paste .md from the filled project context (PRD, intake, brand). Use as /progix step 7, or when the user says "design prompt", "prompt for Claude Design", or is about to start the UI/UX pass. The prompt contains NO code — design only; coding stays in Claude Code.
+description: Generate a PROFESSIONAL Claude Design brief (token contract + anti-vibe-coding constraints) as a clean copy-paste .md. Use when the user says "design prompt", "prompt for Claude Design", "design brief", or is about to start the UI/UX pass. Design intent only — no code.
 argument-hint: [project name]
-allowed-tools: Read Write Glob Grep AskUserQuestion WebSearch
+allowed-tools: Read, Write, Glob, Grep, AskUserQuestion, WebSearch, Bash(python3 *)
 ---
 
 ## Task
 
-Write `design/<project>-design-prompt.md` (repo-root `design/` dir — a copy-paste export, kept out of the `docs/` knowledge tree) for **$ARGUMENTS**, ready to paste straight into Claude Design.
+Produce `design/<project>-design-prompt.md` — a single copy-paste block for Claude Design that
+produces **professional, not vibe-coded** screens. The difference between a cheap prompt and this
+one is: a pasted **token contract**, **specific reference/cultural anchors**, **mandatory states**,
+and an explicit **DO-NOT list**. Why this works: `docs/research/04-design-and-prompting.md`.
 
-1. **Source the context:** the PRD in `docs/product/prds/`, `docs/product/vision.md`, the intake answers, brand/logo notes. The design prompt is a brief, not a spec — it describes the experience to design, never how to build it.
-2. **Research the moving parts (current year).** If the project names fast-changing tech that affects UX or feasibility (Expo SDK capabilities, iOS/Android platform UI conventions, new component patterns, dynamic island, predictive back gesture), do a quick `WebSearch` pass so the brief is current — this is the rule that prevents compatibility surprises later in the build.
-3. **Fill the template** `docs/templates/claude-design-prompt.md`: product · users & primary journeys · surfaces to design (mobile screens + landing/admin if any) · visual direction (personality, brand, references) · expected result & quality bar (real states: empty/loading/error/success; native feel, safe areas, dark mode) · out of scope.
-4. **Cue the visual references.** The prompt should explicitly expect attached images from Pinterest / Behance / Dribbble, with a line per reference on what to borrow (the visual, not the function). Remind the user to attach them when pasting.
-5. **No code rule (hard):** if you catch yourself writing component names, props, NativeWind classes, or snippets, stop — that belongs to Claude Code. The output is pure design intent.
-6. **Output hygiene:** clean Markdown, copy-paste-able as a single block, no repo-internal jargon. End with the reminder: paste into Claude Design, attach references, export the result as a ZIP back to Cowork for the `/progix` handoff to Claude Code.
+### 1. Read the bar and the contract first
+
+Read `docs/design/quality-bar.md`, `docs/templates/claude-design-prompt.md`,
+`docs/conventions/design-system.md`, and `tailwind.config.js`. The filled brief MUST embed the
+real token contract and the DO-NOT list — never a generic "make it clean and modern".
+
+### 2. Source the product context
+
+Use the PRD in `docs/product/prds/` and `docs/product/vision.md` if present. Otherwise ask the user
+(AskUserQuestion) for the brief inputs that genuinely change the design: product + core gesture +
+emotional register; the screens to design; the primary user + the moment; tone words; 2–3 named
+reference apps and (optionally) a cultural anchor. Keep it to one round of questions.
+
+### 3. Rebrand away from the defaults (critical)
+
+The skeleton ships **placeholder indigo (`#6366F1`) + Inter** — the two most recognizable AI tells.
+The brief must instruct a distinctive palette + typeface for THIS app. If the `ui-ux-pro-max` skill
+is installed, use it to pick a product-appropriate palette / style / font pairing:
+
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product> <industry> <tone>" --design-system
+```
+
+If it isn't installed, propose a distinctive palette + font yourself (justify the choice in one
+line) — just never default indigo/purple + Inter. For fast-moving platform UX (Dynamic Island,
+predictive back, new HIG/Material patterns), do a quick `WebSearch` so the brief is current.
+
+### 4. Fill the template
+
+Fill every section of `docs/templates/claude-design-prompt.md` with this project's specifics:
+realistic sample data (never lorem), named + cultural reference anchors, the **token contract as
+design values** (palette roles, type scale, spacing, radii, depth, motion), the required states for
+**every** screen, accessibility, and the **DO-NOT** list. Keep the multi-pass + 3-directions +
+self-critique process section intact.
+
+### 5. No-code rule (hard)
+
+Design intent only. If you catch yourself writing component names, props, class names, or code,
+stop — that belongs to the build pass. The token contract is expressed as **design values** (hex
+roles, sizes, durations), not code.
+
+### 6. Output hygiene
+
+Clean Markdown, one copy-paste block, no repo-internal jargon. End with: paste into Claude Design,
+attach the 3–5 reference images, and export the result as a ZIP back to Cowork. The build pass
+(Claude Code) will read the same token contract + `docs/design/quality-bar.md` when implementing.

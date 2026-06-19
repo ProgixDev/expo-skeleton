@@ -20,8 +20,13 @@ docs-lint keeps every page linked and every link alive.
 - [Code style](conventions/code-style.md)
 - [Testing](conventions/testing.md)
 - [Git workflow](conventions/git-workflow.md)
-- [Design system](conventions/design-system.md)
+- [Design system](conventions/design-system.md) — the token contract
 - [Environments & secrets](conventions/environments.md)
+
+## Design
+
+- [Quality bar](design/quality-bar.md) — premium vs "vibe-coded"; the checklist every screen must clear
+- [Claude Design prompt template](templates/claude-design-prompt.md) — the professional brief (`/design-prompt` fills it)
 
 ## Product
 
