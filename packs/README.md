@@ -43,7 +43,7 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 | `nav-turn-by-turn`      | ✅     | expo-location tracking, OSRM routing, turn-by-turn instruction engine, ETA; text stub                                             | none (OSRM)            | build                                   |
 | `feed-reels`            | ✅     | Vertical video feed: migration + RLS, paginated query, autoplay-on-visible player, optimistic likes; feed stub                    | none                   | build                                   |
 | `profile-settings`      | ✅     | Profile view/edit (profiles table) + local settings store + profile/edit/settings stubs                                           | none                   | `getdraft` profile/settings             |
-| `auth-screens`          | 🟡     | Phone/email OTP, onboarding/quiz, password reset — extends `src/features/auth`                                                    | none                   | `getdraft` + `Gyraya` auth              |
+| `auth-screens`          | ✅     | Passwordless OTP (email + SMS), password reset, onboarding store — extends `src/features/auth`                                    | none                   | `getdraft` + `Gyraya` auth              |
 | `tabbars`               | ✅     | 5 swappable bottom-tab-bar variants (minimal/labeled/pill/floating/indicator) on headless `expo-router/ui`                        | none                   | `Gyraya` + `getdraft`                   |
 
 ## Anatomy of a pack
