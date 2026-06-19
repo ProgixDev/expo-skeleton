@@ -42,7 +42,7 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 | `chat-realtime`         | ✅     | Supabase Realtime DMs/groups: migration + RLS (member-scoped), send/subscribe/read, hook; thread stub                             | none                   | `getdraft/app/chat` (adapt to Supabase) |
 | `nav-turn-by-turn`      | ✅     | expo-location tracking, OSRM routing, turn-by-turn instruction engine, ETA; text stub                                             | none (OSRM)            | build                                   |
 | `feed-reels`            | ✅     | Vertical video feed: migration + RLS, paginated query, autoplay-on-visible player, optimistic likes; feed stub                    | none                   | build                                   |
-| `profile-settings`      | 🟡     | Profile + settings + edit-profile + account screens wired to Supabase                                                             | none                   | `getdraft` profile/settings             |
+| `profile-settings`      | ✅     | Profile view/edit (profiles table) + local settings store + profile/edit/settings stubs                                           | none                   | `getdraft` profile/settings             |
 | `auth-screens`          | 🟡     | Phone/email OTP, onboarding/quiz, password reset — extends `src/features/auth`                                                    | none                   | `getdraft` + `Gyraya` auth              |
 | `tabbars`               | ✅     | 5 swappable bottom-tab-bar variants (minimal/labeled/pill/floating/indicator) on headless `expo-router/ui`                        | none                   | `Gyraya` + `getdraft`                   |
 
