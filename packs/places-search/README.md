@@ -21,7 +21,7 @@ keys. Logic-first; UI is a placeholder.
 No native modules, no key. Use it:
 
 ```tsx
-<PlaceSearchScreen onPick={(p) => router.push(`/nav?lat=${p.lat}&lng=${p.lng}`)} />
+<PlaceSearchScreen onPick={(p) => router.push(`/nav?lat=${p.lat}&lng=${p.lng}`)} />;
 // or headless:
 const { query, setQuery, results } = usePlaceSearch();
 ```

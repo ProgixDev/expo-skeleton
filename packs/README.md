@@ -44,22 +44,23 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 | `feed-reels`            | ✅     | Vertical video feed: migration + RLS, paginated query, autoplay-on-visible player, optimistic likes; feed stub                    | none                   | build                                   |
 | `profile-settings`      | ✅     | Profile view/edit (profiles table) + local settings store + profile/edit/settings stubs                                           | none                   | `getdraft` profile/settings             |
 | `auth-screens`          | ✅     | Passwordless OTP (email + SMS), password reset, onboarding store — extends `src/features/auth`                                    | none                   | `getdraft` + `Gyraya` auth              |
+| `social-auth`           | ✅     | Native Apple + Google sign-in through the backend seam (Supabase `signInWithIdToken` / API `POST /auth/oauth`); buttons stub      | Google web client id   | build                                   |
 | `tabbars`               | ✅     | 5 swappable bottom-tab-bar variants (minimal/labeled/pill/floating/indicator) on headless `expo-router/ui`                        | none                   | `Gyraya` + `getdraft`                   |
 | `push-notifications`    | ✅     | expo-notifications permission + token, owner-scoped `device_tokens` migration, tap-to-route, hook                                 | none (Expo push)       | build                                   |
 | `media-upload`          | ✅     | expo-image-picker + PRIVATE Supabase Storage bucket, per-user folder RLS, signed URLs, upload hook                                | none                   | build                                   |
 | `places-search`         | ✅     | Address autocomplete + reverse geocode via free OSM Nominatim, debounced hook; feeds `nav-turn-by-turn`                           | none (Nominatim)       | build                                   |
 | `analytics`             | ✅     | PostHog typed event layer, screen tracking, ATT-free, PII guard, no-op without a key                                              | none (no-op in dev)    | build                                   |
-| `ai-assistant`          | ✅     | Streaming LLM chat via a Supabase Edge Function (key server-side), RLS history, mock stream when key-free                          | none (mock in dev)     | build                                   |
+| `ai-assistant`          | ✅     | Streaming LLM chat via a Supabase Edge Function (key server-side), RLS history, mock stream when key-free                         | none (mock in dev)     | build                                   |
 | `forms`                 | ✅     | react-hook-form + Zod resolver + ControlledField bound to @/shared/ui (primitive, no route)                                       | none                   | build                                   |
 | `offline-sync`          | ✅     | Network-state hook + persisted optimistic mutation queue that replays on reconnect (primitive)                                    | none                   | build                                   |
 | `app-lifecycle`         | ✅     | Force-update/min-version gate + maintenance mode + timed review prompt, driven by a public config row                             | none                   | build                                   |
 | `i18n`                  | ✅     | Lean localization: typed catalogs, t() interpolation, RTL, persisted locale (no heavy lib)                                        | none                   | build                                   |
-| `feature-flags`         | ✅     | Supabase-driven remote flags + deterministic % rollout, cached, useFlag (primitive)                                              | none                   | build                                   |
+| `feature-flags`         | ✅     | Supabase-driven remote flags + deterministic % rollout, cached, useFlag (primitive)                                               | none                   | build                                   |
 | `activity-inbox`        | ✅     | In-app notifications: table + RLS, unread badge, realtime arrival, mark-read; pairs with push                                     | none                   | build                                   |
 | `social-graph`          | ✅     | Follow/followers: edges + RLS, optimistic toggle, counts, isFollowing                                                             | none                   | build                                   |
 | `comments`              | ✅     | Threaded comments on any entity: table + RLS, paginated, optimistic add/delete                                                    | none                   | build                                   |
 | `search`                | ✅     | Postgres full-text search (tsvector + GIN) + ranked RPC, debounced hook                                                           | none                   | build                                   |
-| `maps-view`             | ✅     | react-native-maps screen + key-free nearby query (bounding-box + haversine) over any lat/lng table                               | none (Apple Maps)      | build                                   |
+| `maps-view`             | ✅     | react-native-maps screen + key-free nearby query (bounding-box + haversine) over any lat/lng table                                | none (Apple Maps)      | build                                   |
 | `booking-calendar`      | ✅     | Resources/availability/bookings + RLS, DB-enforced no-double-book, open-slot query, book/cancel                                   | none                   | build                                   |
 | `cart-checkout`         | ✅     | Persisted cart + products/orders + place_order RPC that prices server-side (never trusts client)                                  | none                   | build                                   |
 | `ratings-reviews`       | ✅     | Star ratings + reviews on any entity: RLS (one per user), average+count RPC, submit/list                                          | none                   | build                                   |
@@ -68,15 +69,27 @@ Status: ✅ ready · 🟡 planned (harvest mapped) · ⬜ to build.
 
 See [`_TEMPLATE/`](_TEMPLATE/). Every pack has:
 
+A pack has **two halves**: a backbone-agnostic **client** (`src/`, imports the seam
+`@/shared/lib/backend` — never an SDK) and a backbone-specific **server** half
+(`server/`). `model/schema.ts` (Zod) is the single shared contract. You ship only the
+server artifact matching your chosen backbone (ADR-0009).
+
 ```
 packs/<name>/
-├── pack.json          # manifest: deps, env, migrations, routes, post-install notes
+├── pack.json          # manifest: deps, env, routes, `backends`, `server` map, post-install
 ├── README.md          # what it does, how it's separated, what keys to ship
-├── src/               # the code copied into src/features/<name>/ on install
-│   ├── model/         # Zod schema + types
-│   ├── data/          # data layer (Supabase queries, API clients, realtime)
+├── src/               # CLIENT half — copied into src/features/<name>/ on install
+│   ├── model/         # Zod schema + types (the contract)
+│   ├── data/          # data layer — through @/shared/lib/backend ONLY (no SDK)
 │   ├── *-service.ts   # logic/services (key-free in dev)
-│   ├── use-*.ts       # hooks
+│   ├── use-*.ts       # React Query hooks (key-factory convention)
 │   └── ui/            # MINIMAL swappable UI (replace after design)
-└── supabase/          # migrations the pack needs (RLS-first), if any
+└── server/            # SERVER half — ship the one matching your backbone
+    ├── supabase/      #   backbone=supabase → RLS-first migration(s)
+    └── api/           #   backbone=api → openapi.yaml (contract) + routes.md + mock.ts
 ```
+
+> Older packs still use a top-level `supabase/` folder; the `server/` layout above is
+> the new format (`_TEMPLATE/`). On the API backbone, `npm run api:gen` (orval) codegens
+> the typed client from `server/api/openapi.yaml`, and `mock.ts` lets the client run
+> before the real endpoints exist.

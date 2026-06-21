@@ -40,10 +40,18 @@ export async function isFollowing(targetUserId: string): Promise<boolean> {
 }
 
 /** Follower + following counts for a user. */
-export async function followCounts(userId: string): Promise<{ followers: number; following: number }> {
+export async function followCounts(
+  userId: string,
+): Promise<{ followers: number; following: number }> {
   const [{ count: followers }, { count: following }] = await Promise.all([
-    supabase.from('follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', userId),
-    supabase.from('follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', userId),
+    supabase
+      .from('follows')
+      .select('follower_id', { count: 'exact', head: true })
+      .eq('following_id', userId),
+    supabase
+      .from('follows')
+      .select('following_id', { count: 'exact', head: true })
+      .eq('follower_id', userId),
   ]);
   return { followers: followers ?? 0, following: following ?? 0 };
 }

@@ -1,6 +1,12 @@
 import { supabase } from '@/shared/lib/supabase';
 
-import { BookingSchema, ResourceSchema, type Booking, type Resource, type Slot } from '../model/booking';
+import {
+  BookingSchema,
+  ResourceSchema,
+  type Booking,
+  type Resource,
+  type Slot,
+} from '../model/booking';
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -48,7 +54,11 @@ export async function listSlots(resourceId: string, from: Date, to: Date): Promi
     const end = new Date(w.ends_at).getTime();
     while (t + slotMs <= end) {
       const startIso = new Date(t).toISOString();
-      slots.push({ start: startIso, end: new Date(t + slotMs).toISOString(), taken: takenSet.has(startIso) });
+      slots.push({
+        start: startIso,
+        end: new Date(t + slotMs).toISOString(),
+        taken: takenSet.has(startIso),
+      });
       t += slotMs;
     }
   }
@@ -67,14 +77,18 @@ export async function book(resourceId: string, slot: Slot): Promise<Result<Booki
     .select('id, resource_id, user_id, slot_start, slot_end, status')
     .single();
   if (error) {
-    if (error.code === '23505') return { ok: false, error: 'That slot was just taken. Pick another.' };
+    if (error.code === '23505')
+      return { ok: false, error: 'That slot was just taken. Pick another.' };
     return { ok: false, error: error.message };
   }
   return { ok: true, value: BookingSchema.parse(data) };
 }
 
 export async function cancelBooking(bookingId: string): Promise<Result<true>> {
-  const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
+  const { error } = await supabase
+    .from('bookings')
+    .update({ status: 'cancelled' })
+    .eq('id', bookingId);
   return error ? { ok: false, error: error.message } : { ok: true, value: true };
 }
 

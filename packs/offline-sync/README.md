@@ -29,14 +29,16 @@ registerMutation('like.toggle', async ({ postId }) => {
 });
 
 // in the UI handler
-setLiked(true);                                   // optimistic
+setLiked(true); // optimistic
 await enqueueMutation('like.toggle', { postId }); // runs now if online, else on reconnect
 ```
 
 ```tsx
 // near the root
 const { isOnline, pending } = useOfflineQueue();
-{!isOnline && pending > 0 ? <Banner>{pending} changes will sync</Banner> : null}
+{
+  !isOnline && pending > 0 ? <Banner>{pending} changes will sync</Banner> : null;
+}
 ```
 
 ## Notes

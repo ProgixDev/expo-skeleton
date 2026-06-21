@@ -1,7 +1,6 @@
-import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
-import { supabase } from '@/shared/lib/supabase';
+import { backend, type BackendSession } from '@/shared/lib/backend';
 
 import { CredentialsSchema } from './schema';
 
@@ -11,7 +10,7 @@ type Result = { ok: true } | { ok: false; error: string };
 
 type AuthState = {
   status: Status;
-  session: Session | null;
+  session: BackendSession | null;
   error: string | null;
   /** Load the current session and subscribe to changes. Returns an unsubscribe. */
   init: () => () => void;
@@ -22,8 +21,12 @@ type AuthState = {
   deleteAccount: () => Promise<Result>;
 };
 
-function statusFor(session: Session | null): Status {
+function statusFor(session: BackendSession | null): Status {
   return session ? 'authenticated' : 'unauthenticated';
+}
+
+function messageFor(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export const useAuthStore = create<AuthState>()((set) => ({
@@ -31,14 +34,16 @@ export const useAuthStore = create<AuthState>()((set) => ({
   session: null,
   error: null,
 
+  // Goes through the backbone seam (@/shared/lib/backend) — never the SDK — so the
+  // whole auth feature works unchanged on either backbone (Supabase / custom API).
   init: () => {
-    void supabase.auth.getSession().then(({ data }) => {
-      set({ session: data.session, status: statusFor(data.session) });
-    });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    void backend.auth.getSession().then((session) => {
       set({ session, status: statusFor(session) });
     });
-    return () => data.subscription.unsubscribe();
+    const sub = backend.auth.onAuthStateChange((session) => {
+      set({ session, status: statusFor(session) });
+    });
+    return () => sub.unsubscribe();
   },
 
   signIn: async (email, password) => {
@@ -49,12 +54,14 @@ export const useAuthStore = create<AuthState>()((set) => ({
       return { ok: false, error };
     }
     set({ error: null });
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
-    if (error) {
-      set({ error: error.message });
-      return { ok: false, error: error.message };
+    try {
+      await backend.auth.signInWithPassword(parsed.data.email, parsed.data.password);
+      return { ok: true };
+    } catch (error) {
+      const message = messageFor(error, 'Sign-in failed');
+      set({ error: message });
+      return { ok: false, error: message };
     }
-    return { ok: true };
   },
 
   signUp: async (email, password) => {
@@ -65,31 +72,32 @@ export const useAuthStore = create<AuthState>()((set) => ({
       return { ok: false, error };
     }
     set({ error: null });
-    const { error } = await supabase.auth.signUp(parsed.data);
-    if (error) {
-      set({ error: error.message });
-      return { ok: false, error: error.message };
+    try {
+      await backend.auth.signUp(parsed.data.email, parsed.data.password);
+      return { ok: true };
+    } catch (error) {
+      const message = messageFor(error, 'Sign-up failed');
+      set({ error: message });
+      return { ok: false, error: message };
     }
-    return { ok: true };
   },
 
   signOut: async () => {
-    // supabase-js clears the LargeSecureStore session via its storage adapter.
-    await supabase.auth.signOut();
+    // The seam clears the LargeSecureStore session via the backbone's storage adapter.
+    await backend.auth.signOut();
     set({ session: null, status: 'unauthenticated', error: null });
   },
 
   deleteAccount: async () => {
-    // The Edge Function validates the JWT and deletes the user + cascaded data.
-    // `invoke` attaches the current session's Authorization header automatically.
-    const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
-    if (error) {
-      set({ error: error.message });
-      return { ok: false, error: error.message };
+    try {
+      await backend.auth.deleteAccount();
+      set({ session: null, status: 'unauthenticated', error: null });
+      return { ok: true };
+    } catch (error) {
+      const message = messageFor(error, 'Account deletion failed');
+      set({ error: message });
+      return { ok: false, error: message };
     }
-    await supabase.auth.signOut();
-    set({ session: null, status: 'unauthenticated', error: null });
-    return { ok: true };
   },
 }));
 

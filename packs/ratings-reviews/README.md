@@ -23,7 +23,7 @@ supabase db reset && supabase test db
 Attach to anything:
 
 ```tsx
-<ReviewsScreen entityType="product" entityId={productId} />
+<ReviewsScreen entityType="product" entityId={productId} />;
 // or headless:
 const { summary, submit } = useReviews('place', placeId); // summary.avg_rating, summary.review_count
 ```

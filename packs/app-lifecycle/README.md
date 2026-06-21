@@ -31,7 +31,7 @@ Wire it:
 // src/app/_layout.tsx
 <LifecycleGate>
   <Stack />
-</LifecycleGate>
+</LifecycleGate>;
 
 // after a win, e.g. user finished onboarding or completed a task:
 await maybeAskForReview();

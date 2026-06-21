@@ -6,7 +6,9 @@ import { AppConfigSchema, type AppConfig } from '../model/config';
 export async function fetchAppConfig(): Promise<AppConfig | null> {
   const { data, error } = await supabase
     .from('app_config')
-    .select('min_supported_build, latest_build, maintenance, maintenance_message, ios_store_url, android_store_url')
+    .select(
+      'min_supported_build, latest_build, maintenance, maintenance_message, ios_store_url, android_store_url',
+    )
     .eq('id', true)
     .maybeSingle();
   if (error || !data) return null;

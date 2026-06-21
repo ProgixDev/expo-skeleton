@@ -9,13 +9,7 @@ import { useComments } from '../use-comments';
  * DESIGN: replace after the Claude Design pass. Functional placeholder thread:
  * paginated comments + optimistic add. Pass the entity to attach comments to.
  */
-export function CommentsScreen({
-  entityType,
-  entityId,
-}: {
-  entityType: string;
-  entityId: string;
-}) {
+export function CommentsScreen({ entityType, entityId }: { entityType: string; entityId: string }) {
   const { comments, error, hasMore, loadMore, post } = useComments(entityType, entityId);
   const [draft, setDraft] = useState('');
 

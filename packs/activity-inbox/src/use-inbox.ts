@@ -2,12 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { supabase } from '@/shared/lib/supabase';
 
-import {
-  listNotifications,
-  markAllRead,
-  markRead,
-  unreadCount,
-} from './data/notifications-repo';
+import { listNotifications, markAllRead, markRead, unreadCount } from './data/notifications-repo';
 import { NotificationSchema, type Notification } from './model/notification';
 
 /**
@@ -52,7 +47,9 @@ export function useInbox() {
   const open = async (n: Notification) => {
     if (!n.read_at) {
       await markRead(n.id);
-      setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x)));
+      setItems((prev) =>
+        prev.map((x) => (x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x)),
+      );
       setUnread((u) => Math.max(0, u - 1));
     }
   };

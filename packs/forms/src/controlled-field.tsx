@@ -1,10 +1,5 @@
 import { View } from 'react-native';
-import {
-  Controller,
-  type Control,
-  type FieldPath,
-  type FieldValues,
-} from 'react-hook-form';
+import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 
 import { AppText, TextField, type TextFieldProps } from '@/shared/ui';
 

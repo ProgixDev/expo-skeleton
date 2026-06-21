@@ -6,10 +6,7 @@ type Result = { ok: true } | { ok: false; error: string };
  * Upsert this device's push token for the current user (RLS: own rows only).
  * Unique on `token`, so re-registering the same device updates instead of dupes.
  */
-export async function saveDeviceToken(
-  token: string,
-  platform: 'ios' | 'android',
-): Promise<Result> {
+export async function saveDeviceToken(token: string, platform: 'ios' | 'android'): Promise<Result> {
   const me = (await supabase.auth.getUser()).data.user;
   if (!me) return { ok: false, error: 'Not signed in.' };
 

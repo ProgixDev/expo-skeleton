@@ -12,7 +12,11 @@ const ExampleSchema = z.object({
   name: z.string().min(2, 'Too short'),
 });
 
-export function ExampleForm({ onSubmit }: { onSubmit?: (v: { email: string; name: string }) => void }) {
+export function ExampleForm({
+  onSubmit,
+}: {
+  onSubmit?: (v: { email: string; name: string }) => void;
+}) {
   const form = useAppForm(ExampleSchema, { email: '', name: '' });
   const submit = form.handleSubmit((values) => onSubmit?.(values));
 
@@ -20,12 +24,7 @@ export function ExampleForm({ onSubmit }: { onSubmit?: (v: { email: string; name
     <Screen>
       <View className="flex-1 justify-center gap-4">
         <AppText variant="display">Example form</AppText>
-        <ControlledField
-          control={form.control}
-          name="name"
-          label="Name"
-          placeholder="Jane"
-        />
+        <ControlledField control={form.control} name="name" label="Name" placeholder="Jane" />
         <ControlledField
           control={form.control}
           name="email"
