@@ -40,13 +40,16 @@ describe('deliveries store', () => {
     expect(s.lastFetchedAt).not.toBeNull();
   });
 
-  it('refresh re-invokes the endpoint (AC-4)', async () => {
-    mockFetch.mockResolvedValue([make()]);
+  it('refresh re-fetches and the list reflects server changes (AC-4)', async () => {
+    mockFetch.mockResolvedValueOnce([make({ id: 'a', itemTitle: 'First' })]);
     await useDeliveriesStore.getState().load();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(useDeliveriesStore.getState().items.map((d) => d.id)).toEqual(['a']);
 
+    mockFetch.mockResolvedValueOnce([make({ id: 'b', itemTitle: 'Second' })]);
     await useDeliveriesStore.getState().refresh();
+
     expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(useDeliveriesStore.getState().items.map((d) => d.id)).toEqual(['b']);
   });
 
   it('keeps cached items and flags error when a refresh fails (AC-6, AC-7)', async () => {

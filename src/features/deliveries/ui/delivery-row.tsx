@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 import { cn } from '@/shared/lib/cn';
 import { colors } from '@/shared/theme/colors';
@@ -31,13 +31,15 @@ type Props = { delivery: Delivery; index: number };
  * detail/handoff screen (a separate spec; a placeholder route exists for now).
  */
 export function DeliveryRow({ delivery, index }: Props) {
+  const reduced = useReducedMotion();
+  const inTransit = delivery.status === 'in_transit';
   const area =
     [delivery.dropoffCity, delivery.dropoffDistrict].filter(Boolean).join(' · ') ||
     'Area unavailable';
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(Math.min(index, 8) * 40)}
+      entering={reduced ? undefined : FadeInDown.delay(Math.min(index, 8) * 40)}
       testID={`deliveries-row-${delivery.id}`}
     >
       <Pressable
@@ -84,10 +86,13 @@ export function DeliveryRow({ delivery, index }: Props) {
               <View
                 className={cn(
                   'rounded-full px-2 py-0.5',
-                  delivery.status === 'in_transit' ? 'bg-brand-50' : 'bg-surface-muted',
+                  inTransit ? 'bg-brand-50' : 'bg-surface-muted',
                 )}
               >
-                <AppText variant="caption" className="text-brand-700">
+                <AppText
+                  variant="caption"
+                  className={cn(inTransit ? 'text-brand-700' : 'text-ink-muted')}
+                >
                   {STATUS_LABEL[delivery.status] ?? delivery.status}
                 </AppText>
               </View>

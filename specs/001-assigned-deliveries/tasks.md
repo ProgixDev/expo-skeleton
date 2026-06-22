@@ -25,7 +25,7 @@ Ordered, executable, checkboxed. Work top-to-bottom, tick boxes as you commit, n
 
 ## Phase 3 — review & ship
 
-- [ ] **T12** `/review`; fix P0/P1.
+- [x] **T12** `/review` (multi-persona) → 3 P1s fixed: cold-start rehydration race (AC-7/8), missing `verify_jwt` for the new edge fn, unregistered CUJ-002. Cheap P2s also fixed (reduced-motion gate, pill contrast, edge-fn error log, AC-4 + rehydration tests).
 - [ ] **T13** `/security-review` (network + storage + identity): confirm AC-9 (no client identity, server-derived), cache-store choice (`appStorage` vs `secureStorage`), Zod at the network edge.
 - [ ] **T14** `/feature-report` → `docs/reports/001-assigned-deliveries.md` (screenshots, AC→test traceability).
 - [ ] **T15** Open PR (template filled; spec + plan + report linked).

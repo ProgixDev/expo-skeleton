@@ -36,9 +36,15 @@ export function DeliveriesScreen() {
 
   const active = useMemo(() => selectActiveDeliveries(items), [items]);
 
-  // Initial load on mount, and re-fetch whenever the app returns to the foreground.
+  // Initial load on mount — but only AFTER the persisted cache has rehydrated, so
+  // an offline cold start shows the cached list (+ stale banner) instead of a full
+  // skeleton/error (spec 001 AC-7/AC-8). Persist rehydration is asynchronous.
   useEffect(() => {
-    void load();
+    if (useDeliveriesStore.persist.hasHydrated()) {
+      void load();
+      return;
+    }
+    return useDeliveriesStore.persist.onFinishHydration(() => void load());
   }, [load]);
 
   useEffect(() => {

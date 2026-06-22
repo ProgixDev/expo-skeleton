@@ -31,6 +31,8 @@ beforeEach(() => {
   useDeliveriesStore.setState({ items: [], status: 'idle', error: null, lastFetchedAt: null });
 });
 
+afterEach(() => jest.restoreAllMocks());
+
 describe('<DeliveriesScreen />', () => {
   it('shows a loading state, then renders each delivery row (AC-1, AC-8, AC-10)', async () => {
     mockFetch.mockResolvedValue([make()]);
@@ -64,6 +66,24 @@ describe('<DeliveriesScreen />', () => {
     fireEvent.press(screen.getByTestId('deliveries-retry'));
 
     expect(await screen.findByText('Recovered item')).toBeOnTheScreen();
+  });
+
+  it('defers the initial load until the persisted cache has rehydrated (AC-7/AC-8)', () => {
+    const loadSpy = jest.spyOn(useDeliveriesStore.getState(), 'load').mockResolvedValue(undefined);
+    jest.spyOn(useDeliveriesStore.persist, 'hasHydrated').mockReturnValue(false);
+    let finishHydration = () => {};
+    jest.spyOn(useDeliveriesStore.persist, 'onFinishHydration').mockImplementation((cb) => {
+      finishHydration = cb as () => void;
+      return () => {};
+    });
+
+    render(<DeliveriesScreen />);
+    // No fetch before the cache has rehydrated — otherwise an offline cold start
+    // would skeleton/error instead of showing the cached list.
+    expect(loadSpy).not.toHaveBeenCalled();
+
+    finishHydration();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the cached list with a stale banner when a refresh fails offline (AC-7)', async () => {

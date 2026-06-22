@@ -66,6 +66,8 @@ Deno.serve(async (req) => {
     .order('created_at', { ascending: false });
 
   if (error) {
+    // Log server-side so failures are diagnosable; never leak internals to the client.
+    console.error('list-livreur-deliveries query failed', error);
     return new Response(JSON.stringify({ error: 'query_failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
