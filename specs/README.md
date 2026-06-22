@@ -29,6 +29,6 @@ ship → /update-docs                           status: shipped; learnings disti
 
 ## Index
 
-| #   | Spec                                    | Status |
-| --- | --------------------------------------- | ------ |
-| —   | _none yet — created via `/create-spec`_ | —      |
+| #   | Spec                                                                       | Status |
+| --- | -------------------------------------------------------------------------- | ------ |
+| 001 | [Assigned-deliveries list for the driver](001-assigned-deliveries/spec.md) | active |

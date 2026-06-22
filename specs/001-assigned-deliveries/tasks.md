@@ -1,0 +1,45 @@
+# Tasks 001 — Assigned-deliveries list for the driver
+
+Ordered, executable, checkboxed. Work top-to-bottom, tick boxes as you commit, never reorder silently. `[P]` = safe to parallelize. Each task names its files + done-check. Keep tasks ≤ ~30 min. Test tasks precede their implementation.
+
+## Phase 0 — setup
+
+- [x] **T0** Branch `feat/001-assigned-deliveries`; scaffold slice with `/new-module deliveries` — files: `src/features/deliveries/*` (schema/store/ui/index/**tests** skeleton). · done: typecheck green, `index.ts` exports compile.
+- [x] **T1** Backend edge function `supabase/functions/list-livreur-deliveries/index.ts` (Deno): Bearer → `userClient.auth.getUser()` (401 if none); **service-role** query `deliveries` where `livreur_id = user.id` AND `status in ('assigned','in_transit')`, join `orders` (`reference`, `product_snapshot.title/photo`, `shop_id`) + `shops` (`name`), read `delivery_address` `city`/`district`; order `created_at desc`; return JSON array of the DTO (NO street `details`). · done: `deno check` passes; manual `functions.invoke` returns an array for a seeded livreur. · note: outside `npm run verify`. (Decided: built in THIS repo.)
+
+## Phase 1 — core behavior (AC-1, AC-2, AC-3, AC-10)
+
+- [x] **T2** Schema: `model/schema.ts` — `DeliveryStatus` enum (`assigned`/`in_transit`), `DeliverySchema` (id, orderRef, itemTitle, itemPhoto, shopName, dropoffCity, dropoffDistrict, status, createdAt), `DeliveryListSchema`. No `details` field. · done: typecheck green. (AC-1, AC-10)
+- [x] **T3** API test-first: `__tests__/deliveries-api.test.ts` (mock `supabase.functions.invoke`; assert invoked with name + method and **no livreur/identity argument**; parses valid payload; throws on bad payload) → then `lib/deliveries-api.ts`. · done: test green. (AC-9 client, AC-1 parse)
+- [x] **T4** Store test-first: `__tests__/store.test.ts` (load success sets items; `selectActiveDeliveries` drops non-active + sorts newest-first; `refresh()` re-invokes; failure sets error but **keeps** `items`; `clearCache()` empties items + persisted cache) → then `model/store.ts` (state + actions + `persist` via `appStorage`/`asyncStorageBackend` + Zod `merge`). · done: store tests green. (AC-2, AC-3, AC-4, AC-6 state, AC-7 cache-kept, AC-9 clear)
+- [ ] **T5 [P]** Row UI: `ui/delivery-row.tsx` — `Card` with order ref, `expo-image` thumbnail + item title, shop name, area `city · district`, status badge, relative time; `testID="deliveries-row-{id}"`; pressable → `router.push('/delivery/'+id)`. · done: renders. (AC-1, AC-10)
+- [ ] **T6** Screen UI: `ui/deliveries-screen.tsx` — `Screen` + `FlatList(selectActiveDeliveries)` with `RefreshControl(onRefresh=refresh)`; states: loading `Skeleton` (`deliveries-loading`), empty `EmptyState` (`deliveries-empty`), error+retry (`deliveries-error`/`deliveries-retry`), stale banner when cached & last refresh failed (`deliveries-stale-banner`); `AppState` foreground listener → `refresh()`. Feature-prefixed testIDs. · done: all states render. (AC-1, AC-5, AC-6, AC-7, AC-8)
+- [ ] **T7** Component tests: `__tests__/deliveries-screen.test.tsx` (mock api) — loading→list (AC-1, AC-8); empty (AC-5); reject+no cache→error, retry re-invokes (AC-6); seed cache+reject→rows + stale banner (AC-7); area shown, no street (AC-10). · done: green.
+- [ ] **T8** Route + wiring: `src/app/index.tsx`→`DeliveriesScreen`; add `src/app/tasks.tsx`→`TasksScreen`; add placeholder `src/app/delivery/[id].tsx` ("coming soon"); in `src/app/_layout.tsx` clear deliveries cache when auth status → `unauthenticated`. Export `DeliveriesScreen`, `useDeliveriesStore`, `Delivery` from `index.ts`. · done: app navigable; sign-out empties cache. (AC-9 cross-user)
+
+## Phase 2 — verification
+
+- [ ] **T9** Maestro: `.maestro/flows/deliveries-cuj.yaml` (launch as signed-in driver → list or empty → swipe-down refresh); update `.maestro/flows/tasks-cuj.yaml` + `smoke.yaml` to deep-link `linkydriver://tasks`. · done: `npm run e2e:ios` green (or documented if no macOS).
+- [ ] **T10** `/verify-ui` — boot app (Argent), walk **CUJ-002**, screenshot loading/list/empty/error/offline, inspect against ACs; fix what you see. (needs simulator)
+- [ ] **T11** `npm run verify` green; commit history clean (Conventional Commits).
+
+## Phase 3 — review & ship
+
+- [ ] **T12** `/review`; fix P0/P1.
+- [ ] **T13** `/security-review` (network + storage + identity): confirm AC-9 (no client identity, server-derived), cache-store choice (`appStorage` vs `secureStorage`), Zod at the network edge.
+- [ ] **T14** `/feature-report` → `docs/reports/001-assigned-deliveries.md` (screenshots, AC→test traceability).
+- [ ] **T15** Open PR (template filled; spec + plan + report linked).
+- [ ] **T16** After merge: `/update-docs` — feature doc, register **CUJ-002**, flip spec → `shipped` in `specs/README.md`.
+
+## AC coverage (mirror of plan.md — keep ticked in sync)
+
+- [ ] AC-1 → T5, T6, T7, T9
+- [ ] AC-2 → T4 (selector), T1 (server)
+- [ ] AC-3 → T4
+- [ ] AC-4 → T4, T6
+- [ ] AC-5 → T7, T9
+- [ ] AC-6 → T7
+- [ ] AC-7 → T7
+- [ ] AC-8 → T7
+- [ ] AC-9 → T3, T4 (clearCache), T8, T1 (server)
+- [ ] AC-10 → T2 (schema), T5, T7
