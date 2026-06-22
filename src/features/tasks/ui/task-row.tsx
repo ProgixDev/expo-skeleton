@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, useReducedMotion } from 'react-native-reanimated';
 
 import { cn } from '@/shared/lib/cn';
 import { AppText, Button } from '@/shared/ui';
@@ -14,10 +14,11 @@ type Props = {
 };
 
 export function TaskRow({ task, index, onToggle, onRemove }: Props) {
+  const reduced = useReducedMotion();
   return (
     <Animated.View
-      entering={FadeInDown.delay(Math.min(index, 8) * 40)}
-      exiting={FadeOut}
+      entering={reduced ? undefined : FadeInDown.delay(Math.min(index, 8) * 40)}
+      exiting={reduced ? undefined : FadeOut}
       testID={`task-row-${task.id}`}
     >
       <View className="mb-2 flex-row items-center gap-3 rounded-card bg-surface-muted p-4">

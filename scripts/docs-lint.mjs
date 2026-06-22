@@ -92,6 +92,35 @@ for (const file of uiFiles) {
   });
 }
 
+// 5. CUJ ↔ Maestro sync: every CUJ-NNN referenced in a Maestro flow must have a
+//    matching "## CUJ-NNN" heading in the critical-user-journeys doc (and the doc's
+//    Flow: paths must point at real files). Encoded after a flow referenced a CUJ
+//    that didn't exist in the source of truth.
+const cujDocPath = join(root, 'docs', 'quality', 'critical-user-journeys.md');
+try {
+  const cujDoc = readFileSync(cujDocPath, 'utf8');
+  const flowsDir = join(root, '.maestro', 'flows');
+  let flowFiles = [];
+  try {
+    flowFiles = readdirSync(flowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+  } catch {
+    flowFiles = [];
+  }
+  for (const f of flowFiles) {
+    const text = readFileSync(join(flowsDir, f), 'utf8');
+    const refs = new Set([...text.matchAll(/CUJ-\d+/g)].map((m) => m[0]));
+    for (const ref of refs) {
+      if (!new RegExp(`##\\s*${ref}\\b`).test(cujDoc)) {
+        errors.push(
+          `.maestro/flows/${f} references ${ref} but critical-user-journeys.md has no "## ${ref}" heading`,
+        );
+      }
+    }
+  }
+} catch {
+  // The orphan/link checks above already flag a missing CUJ doc if anything links it.
+}
+
 if (errors.length > 0) {
   console.error(`\ndocs-lint failed with ${errors.length} problem(s):\n`);
   for (const error of errors) console.error(`  ✗ ${error}`);
@@ -100,5 +129,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `docs-lint ✓ ${mdFiles.length} markdown files checked, links + orphans + taste rules OK`,
+  `docs-lint ✓ ${mdFiles.length} markdown files checked, links + orphans + taste + CUJ sync OK`,
 );

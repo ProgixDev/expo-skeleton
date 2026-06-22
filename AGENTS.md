@@ -49,14 +49,16 @@ Notably, `expo-router` no longer sits on react-navigation — never import
 ## Commands
 
 ```bash
-npm run verify        # format:check + lint + typecheck + test + docs:lint — the local gate
+npm run verify        # format + lint + animations + typecheck + test + docs:lint + functions + secrets — the local gate
 npm test              # Jest (watch: npm run test:watch)
 npm run lint:fix      # ESLint with autofix
 npm run typecheck     # tsc --noEmit
 npm run ios           # expo start --ios (dev client)
 npm run e2e:ios       # Maestro flows in .maestro/flows
 npm run new:feature   # scaffold a feature slice (then read the printed next steps)
-npm run docs:lint     # docs integrity: links, orphans, taste rules
+npm run docs:lint     # docs integrity: links, orphans, taste rules, CUJ↔Maestro sync
+npm run animations:check  # Reanimated entering/exiting must respect useReducedMotion
+npm run functions:check   # every supabase/functions/<name> declares verify_jwt in config.toml
 ```
 
 ## Docs map — decide what to pull into context
