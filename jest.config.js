@@ -12,7 +12,7 @@ module.exports = {
   // of the app suite (they run once a pack is installed into src/).
   testPathIgnorePatterns: ['/node_modules/', '/packs/'],
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|expo-router|expo-modules-core|react-native-css-interop|nativewind|@react-native-async-storage/.*|react-native-.*|zustand)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?(-[a-z-]+)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-native-css-interop|nativewind|@react-native-async-storage/.*|react-native-.*|zustand)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',

@@ -1,9 +1,12 @@
-# Expo Skeleton
+# Linky Driver
 
-Production-grade skeleton for the company's mobile apps: **Expo SDK 56 ·
-React Native 0.85 · TypeScript (strict) · expo-router · Zustand · Zod ·
-NativeWind · Reanimated 4 · Jest** — wrapped in an AI-agent harness so
-humans _and_ coding agents ship safely from day one.
+The driver-side companion app for [Linky](../linky) — Guinea’s products &
+real-estate marketplace. Drivers (_livreurs_) pick up orders and, at handoff,
+scan the buyer’s on-screen QR to confirm delivery and release escrow. Built on
+**Expo SDK 56 · React Native 0.85 · TypeScript (strict) · expo-router · Zustand
+· Zod · NativeWind · Reanimated 4 · Jest**, backed by the same Supabase project
+as Linky, and wrapped in an AI-agent harness so humans _and_ coding agents ship
+safely from day one.
 
 > **New here? Read [`AGENTS.md`](AGENTS.md) first** — it is the operating
 > manual for both people and AI agents, and it maps the entire docs tree.

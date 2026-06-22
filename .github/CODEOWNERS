@@ -1,12 +1,12 @@
 # Ownership maps 1:1 to the architecture — folders, not files.
-# TODO(company): replace placeholders with real teams.
+# Solo owner for now; split into teams as the project grows.
 
-* @yourorg/mobile-platform
+* @achrafbenamrane
 
-/src/features/tasks/ @yourorg/squad-core
-/src/shared/ @yourorg/mobile-platform
-/docs/product/ @yourorg/product
-/docs/personas/ @yourorg/mobile-platform @yourorg/product
-/.github/ @yourorg/mobile-platform
-/.maestro/ @yourorg/qa
-/docs/quality/ @yourorg/qa
+/src/features/tasks/ @achrafbenamrane
+/src/shared/ @achrafbenamrane
+/docs/product/ @achrafbenamrane
+/docs/personas/ @achrafbenamrane
+/.github/ @achrafbenamrane
+/.maestro/ @achrafbenamrane
+/docs/quality/ @achrafbenamrane

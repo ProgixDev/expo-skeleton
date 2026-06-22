@@ -23,6 +23,7 @@ module.exports = defineConfig([
       'coverage/**',
       'reports/**',
       'packs/**', // feature-pack library: parked, opt-in code — not linted until installed
+      'supabase/functions/**', // Deno edge functions (jsr:/npm: specifiers) — checked by `deno lint`, not the RN ESLint resolver
       'expo-env.d.ts',
       '**/._*', // macOS AppleDouble files on exFAT/network volumes
     ],

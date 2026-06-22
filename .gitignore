@@ -43,7 +43,9 @@ example
 /android
 
 # repo-specific
-reports/
+# Root-level build/coverage report output only — anchored so docs/reports/
+# (committed feature + daily evidence Markdown, per ADR-0008) stays tracked.
+/reports/
 .maestro/tests/
 .env
 .env.*

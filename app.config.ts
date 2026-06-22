@@ -6,28 +6,28 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * Environment-specific values come from EAS environment variables or
  * `.env` files (EXPO_PUBLIC_*). See docs/conventions/environments.md.
  *
- * TODO(company): replace name, slug, scheme, bundle identifiers and the
- * EAS projectId placeholder before first build.
+ * TODO(company): set the EAS projectId + updates.url placeholders below after
+ * `eas init` (the only identity values still pending before first build).
  */
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
-const name = IS_DEV ? 'Skeleton (Dev)' : IS_PREVIEW ? 'Skeleton (Preview)' : 'Skeleton';
+const name = IS_DEV ? 'Linky Driver (Dev)' : IS_PREVIEW ? 'Linky Driver (Preview)' : 'Linky Driver';
 const bundleId = IS_DEV
-  ? 'com.yourcompany.skeleton.dev'
+  ? 'com.linky.driver.dev'
   : IS_PREVIEW
-    ? 'com.yourcompany.skeleton.preview'
-    : 'com.yourcompany.skeleton';
+    ? 'com.linky.driver.preview'
+    : 'com.linky.driver';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name,
-  slug: 'expo-skeleton',
+  slug: 'linky-driver',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'skeleton',
+  scheme: 'linkydriver',
   userInterfaceStyle: 'automatic',
   ios: {
     bundleIdentifier: bundleId,
