@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore, useProtectedRoute } from '@/features/auth';
+import { useDeliveriesStore } from '@/features/deliveries';
 import '@/shared/lib/env'; // fail fast on invalid environment
 import { registerSupabaseAutoRefresh } from '@/shared/lib/supabase';
 
@@ -31,9 +32,17 @@ export default function RootLayout() {
   useEffect(() => {
     const unsubscribe = useAuthStore.getState().init();
     const stopAutoRefresh = registerSupabaseAutoRefresh();
+    // On sign-out, drop any cached deliveries so the next driver on this device
+    // never sees the previous driver's list (spec 001 AC-9).
+    const unsubAuth = useAuthStore.subscribe((state, prev) => {
+      if (state.status === 'unauthenticated' && prev.status !== 'unauthenticated') {
+        useDeliveriesStore.getState().clearCache();
+      }
+    });
     return () => {
       unsubscribe();
       stopAutoRefresh();
+      unsubAuth();
     };
   }, []);
 
