@@ -32,3 +32,4 @@ ship → /update-docs                           status: shipped; learnings disti
 | #   | Spec                                                                       | Status |
 | --- | -------------------------------------------------------------------------- | ------ |
 | 001 | [Assigned-deliveries list for the driver](001-assigned-deliveries/spec.md) | active |
+| 002 | [Delivery detail & QR-scan handoff](002-delivery-handoff/spec.md)          | active |
