@@ -26,10 +26,10 @@ Ordered, executable, checkboxed. Work top-to-bottom, tick boxes as you commit, n
 ## Phase 3 — review & ship
 
 - [x] **T12** `/review` (multi-persona) → 3 P1s fixed: cold-start rehydration race (AC-7/8), missing `verify_jwt` for the new edge fn, unregistered CUJ-002. Cheap P2s also fixed (reduced-motion gate, pill contrast, edge-fn error log, AC-4 + rehydration tests).
-- [ ] **T13** `/security-review` (network + storage + identity): confirm AC-9 (no client identity, server-derived), cache-store choice (`appStorage` vs `secureStorage`), Zod at the network edge.
-- [ ] **T14** `/feature-report` → `docs/reports/001-assigned-deliveries.md` (screenshots, AC→test traceability).
-- [ ] **T15** Open PR (template filled; spec + plan + report linked).
-- [ ] **T16** After merge: `/update-docs` — feature doc, register **CUJ-002**, flip spec → `shipped` in `specs/README.md`.
+- [x] **T13** `/security-review`: PASS, no P1s. AC-9 server-derived identity + `verify_jwt`; Zod at network + rehydration edges (SEC-INPUT-001); RLS-enforced (SEC-RLS-001); `appStorage` accepted for area-only cache (SEC-STORE-001 watch-item: move to secureStorage if dropoff precision increases); deep-link param display-only (SEC-LINK-002).
+- [x] **T14** `/feature-report` → `docs/reports/001-assigned-deliveries.md` (AC→test traceability, verdicts; screenshots deferred with T10).
+- [ ] **T15** Open PR — **BLOCKED: the only remote is the upstream skeleton (`ProgixDev/expo-skeleton`).** Create a dedicated `linky-driver` GitHub repo, set `origin`, push, then open the PR. Do NOT push this branch to the skeleton repo.
+- [ ] **T16** After merge: `/update-docs` — feature doc, flip spec → `shipped`. (CUJ-002 already registered during T12.) Deferred until merged.
 
 ## AC coverage (mirror of plan.md — keep ticked in sync)
 
