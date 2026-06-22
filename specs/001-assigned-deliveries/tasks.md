@@ -19,9 +19,9 @@ Ordered, executable, checkboxed. Work top-to-bottom, tick boxes as you commit, n
 
 ## Phase 2 — verification
 
-- [ ] **T9** Maestro: `.maestro/flows/deliveries-cuj.yaml` (launch as signed-in driver → list or empty → swipe-down refresh); update `.maestro/flows/tasks-cuj.yaml` + `smoke.yaml` to deep-link `linkydriver://tasks`. · done: `npm run e2e:ios` green (or documented if no macOS).
-- [ ] **T10** `/verify-ui` — boot app (Argent), walk **CUJ-002**, screenshot loading/list/empty/error/offline, inspect against ACs; fix what you see. (needs simulator)
-- [ ] **T11** `npm run verify` green; commit history clean (Conventional Commits).
+- [x] **T9** Maestro: `.maestro/flows/deliveries-cuj.yaml` (launch as signed-in driver → list or empty → swipe-down refresh); updated `.maestro/flows/tasks-cuj.yaml` + `smoke.yaml` (fixed stale appId → `com.linky.driver.dev`, auth-aware, tasks via `linkydriver://tasks`). · done: flows written; **`npm run e2e:ios` execution DEFERRED — needs macOS simulator + a seeded livreur (not available here).**
+- [ ] **T10** `/verify-ui` — boot app (Argent), walk **CUJ-002**, screenshot loading/list/empty/error/offline, inspect against ACs; fix what you see. **DEFERRED — Argent needs a macOS iOS simulator; not runnable on this Windows host. Must be run before merge.**
+- [x] **T11** `npm run verify` green (format + lint + typecheck + 42 tests + docs:lint + secrets); commit history clean (Conventional Commits).
 
 ## Phase 3 — review & ship
 
