@@ -120,8 +120,8 @@ offline, permission-denied (never a dead end), load error.
 - **Edge-function log-scrub gate:** extend `functions:check` to fail when a
   `supabase/functions/**` `console.*` call passes a value not routed through a `scrub()`-style
   redactor.
-- **Design pass:** the Linky brand is **emerald `#0E6E55` + saffron** (per the design
-  system), but this repo's tokens are still indigo `brand` (the canonical driver-app hasn't
-  switched either). Re-skin via `tailwind.config.js` + `theme/colors.ts` in the dedicated
-  design pass — these screens use semantic tokens only, so the rebrand is a token change, not
-  a per-screen edit.
+- **Design pass (done):** the Linky brand — **emerald `#0E6E55` + saffron `#E8A53D`** — is now
+  the token contract: `tailwind.config.js` `brand` ramp re-skinned from the placeholder indigo
+  to emerald, a saffron `accent` role added, and `success`/`danger` aligned to the Linky palette,
+  with `theme/colors.ts` mirrored in sync. Because these screens reference semantic `brand-*`
+  roles only (never raw hex), the rebrand was a pure token change — no per-screen edits.
