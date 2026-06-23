@@ -76,9 +76,12 @@ export function DeliveryRow({ delivery, index }: Props) {
             <AppText variant="label" numberOfLines={1}>
               {delivery.itemTitle || 'Item'}
             </AppText>
-            <AppText variant="caption" numberOfLines={1}>
-              {delivery.shopName || 'Shop'}
-            </AppText>
+            {/* The list endpoint exposes no shop name; render the line only when present. */}
+            {delivery.shopName ? (
+              <AppText variant="caption" numberOfLines={1}>
+                {delivery.shopName}
+              </AppText>
+            ) : null}
             <View className="mt-1 flex-row items-center justify-between">
               <AppText variant="caption" numberOfLines={1} className="flex-1">
                 {area}

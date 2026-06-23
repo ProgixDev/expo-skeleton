@@ -41,6 +41,35 @@ export type Delivery = z.infer<typeof DeliverySchema>;
 
 export const DeliveryListSchema = z.array(DeliverySchema);
 
+// --- Wire shape: the deployed `list-livreur-deliveries` response ---
+// The live Linky backend returns a PAGINATED ENVELOPE `{ deliveries, next_cursor }` of
+// NESTED camelCase rows (createdAt is an ISO string, the order is a nested object, and
+// there is no shop join) — NOT the flat array above. It is mapped to the flat `Delivery`
+// worklist model in lib/deliveries-api.ts. Privacy (AC-10): the list must not reveal the
+// street `details`; this wire schema maps only city/district and Zod strips the rest, so
+// even if the address blob carries `details` it never reaches the client model.
+const DeliveryListItemWireSchema = z.object({
+  id: z.string(),
+  status: z.string(),
+  createdAt: z.string().optional(),
+  deliveryAddress: z
+    .object({ city: z.string().nullish(), district: z.string().nullish() })
+    .nullish(),
+  order: z
+    .object({
+      reference: z.string().optional(),
+      productSnapshot: z
+        .object({ title: z.string().optional(), photo: z.string().optional() })
+        .nullish(),
+    })
+    .nullish(),
+});
+export type DeliveryListItemWire = z.infer<typeof DeliveryListItemWireSchema>;
+export const DeliveryListResponseSchema = z.object({
+  deliveries: z.array(DeliveryListItemWireSchema),
+  next_cursor: z.unknown().nullish(),
+});
+
 // ===========================================================================
 // Spec 002 — delivery detail & QR-scan handoff
 // ===========================================================================

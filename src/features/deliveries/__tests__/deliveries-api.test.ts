@@ -27,17 +27,19 @@ const apiErr = (status: number, code: string, message_fr = '') =>
 const ORDER_UUID = '11111111-1111-4111-8111-111111111111';
 const TOKEN_UUID = '22222222-2222-4222-8222-222222222222';
 
-const validDelivery = {
+// The deployed `list-livreur-deliveries` wire row: nested camelCase, ISO createdAt, no
+// shop join. Wrapped in the `{ deliveries, next_cursor }` envelope the backend returns.
+const wireListRow = {
   id: 'd1',
-  orderRef: 'LK-2026-00001',
-  itemTitle: 'Phone case',
-  itemPhoto: '',
-  shopName: 'TechShop',
-  dropoffCity: 'Conakry',
-  dropoffDistrict: 'Kaloum',
   status: 'assigned',
-  createdAt: 1700000000000,
+  createdAt: '2026-06-22T10:00:00.000Z',
+  deliveryAddress: { city: 'Conakry', district: 'Kaloum' },
+  order: {
+    reference: 'LK-2026-00001',
+    productSnapshot: { title: 'Phone case', photo: '' },
+  },
 };
+const listEnvelope = (rows: unknown[]) => ({ deliveries: rows, next_cursor: null });
 
 // The `get-delivery` wire shape (camelCase + nested) — carries the FULL street address
 // + buyer name, unlike the list.
@@ -61,7 +63,7 @@ beforeEach(() => mockApiPost.mockReset());
 
 describe('fetchDeliveries', () => {
   it('calls the endpoint with NO client-supplied identity (AC-9)', async () => {
-    mockApiPost.mockResolvedValue([validDelivery]);
+    mockApiPost.mockResolvedValue(listEnvelope([wireListRow]));
 
     await fetchDeliveries();
 
@@ -71,21 +73,41 @@ describe('fetchDeliveries', () => {
     expect(mockApiPost.mock.calls[0][0].body).toBeUndefined();
   });
 
-  it('parses and returns the delivery list', async () => {
-    mockApiPost.mockResolvedValue([validDelivery]);
+  it('parses the { deliveries, next_cursor } envelope and maps nested rows to the flat model', async () => {
+    mockApiPost.mockResolvedValue(listEnvelope([wireListRow]));
 
     const result = await fetchDeliveries();
 
     expect(result).toHaveLength(1);
     expect(result[0]?.orderRef).toBe('LK-2026-00001');
+    expect(result[0]?.itemTitle).toBe('Phone case');
+    expect(result[0]?.dropoffCity).toBe('Conakry');
+    expect(result[0]?.status).toBe('assigned');
+    expect(result[0]?.createdAt).toBe(Date.parse('2026-06-22T10:00:00.000Z'));
   });
 
-  it('strips unknown fields such as street details (AC-10)', async () => {
-    mockApiPost.mockResolvedValue([{ ...validDelivery, details: '12 Rue Secret' }]);
+  it('returns an empty list for the empty envelope (no error state on zero deliveries)', async () => {
+    mockApiPost.mockResolvedValue({ deliveries: [], next_cursor: null });
+
+    await expect(fetchDeliveries()).resolves.toEqual([]);
+  });
+
+  it('never surfaces the street details from the list (AC-10)', async () => {
+    // Even if the address blob carries a street `details`, the wire schema drops it.
+    mockApiPost.mockResolvedValue(
+      listEnvelope([
+        {
+          ...wireListRow,
+          deliveryAddress: { city: 'Conakry', district: 'Kaloum', details: '12 Rue Secret' },
+        },
+      ]),
+    );
 
     const result = await fetchDeliveries();
 
     expect(result[0]).not.toHaveProperty('details');
+    expect(JSON.stringify(result[0])).not.toMatch(/Rue Secret/);
+    expect(result[0]?.dropoffCity).toBe('Conakry');
   });
 
   it('propagates the backend error (store shows the error state)', async () => {
@@ -94,7 +116,7 @@ describe('fetchDeliveries', () => {
     await expect(fetchDeliveries()).rejects.toThrow('Erreur serveur.');
   });
 
-  it('throws on an unexpected payload shape', async () => {
+  it('throws on an unexpected payload shape (e.g. a bare array, not the envelope)', async () => {
     mockApiPost.mockResolvedValue([{ id: 'x' }]);
 
     await expect(fetchDeliveries()).rejects.toThrow('Unexpected deliveries response');

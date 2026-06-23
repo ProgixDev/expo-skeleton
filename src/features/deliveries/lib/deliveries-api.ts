@@ -2,11 +2,12 @@ import { ApiError, apiPost } from '@/shared/lib/api';
 
 import {
   DeliveryDetailResponseSchema,
-  DeliveryListSchema,
+  DeliveryListResponseSchema,
   DeliveryStatusSchema,
   HandoffResultSchema,
   type Delivery,
   type DeliveryDetail,
+  type DeliveryListItemWire,
   type HandoffOutcome,
 } from '../model/schema';
 
@@ -15,22 +16,42 @@ import {
 // is DeliveryStatusSchema (no duplicate status list here).
 const statusOrUnassigned = DeliveryStatusSchema.catch('unassigned');
 
+// Map a deployed list row (nested camelCase) → the flat worklist view model. The street
+// `details` was already stripped by the wire schema (AC-10); the backend exposes no shop
+// name on the list, so `shopName` is left empty (the row hides it when absent).
+function mapListItem(w: DeliveryListItemWire): Delivery {
+  return {
+    id: w.id,
+    orderRef: w.order?.reference ?? '',
+    itemTitle: w.order?.productSnapshot?.title ?? '',
+    itemPhoto: w.order?.productSnapshot?.photo ?? '',
+    shopName: '',
+    dropoffCity: w.deliveryAddress?.city ?? '',
+    dropoffDistrict: w.deliveryAddress?.district ?? '',
+    status: statusOrUnassigned.parse(w.status),
+    createdAt: w.createdAt ? Date.parse(w.createdAt) || 0 : 0,
+  };
+}
+
 /**
- * Fetch the signed-in driver's active deliveries from the Linky edge function.
+ * Fetch the signed-in driver's deliveries from the Linky edge function.
  *
  * The request carries NO driver identity — `apiPost` attaches the Linky access
  * token (self-rolled JWT) and the function derives `livreur_id` from it (spec 001
- * AC-9). The response is Zod-validated at this network edge.
+ * AC-9). The deployed backend returns a paginated `{ deliveries, next_cursor }`
+ * envelope of nested rows, validated at this edge and mapped to the flat model;
+ * `selectActiveDeliveries` then filters to assigned/in_transit. (The active worklist
+ * is small, so the first page suffices — cursor paging is unused for now.)
  */
 export async function fetchDeliveries(): Promise<Delivery[]> {
   const data = await apiPost<unknown>({ path: '/list-livreur-deliveries' });
 
-  const parsed = DeliveryListSchema.safeParse(data);
+  const parsed = DeliveryListResponseSchema.safeParse(data);
   if (!parsed.success) {
     throw new Error('Unexpected deliveries response');
   }
 
-  return parsed.data;
+  return parsed.data.deliveries.map(mapListItem);
 }
 
 /**

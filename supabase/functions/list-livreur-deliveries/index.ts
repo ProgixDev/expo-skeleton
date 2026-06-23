@@ -1,5 +1,6 @@
 // Returns the signed-in driver's ACTIVE deliveries (status assigned/in_transit),
-// newest first, joined with the order's item + shop + dropoff AREA (city/district).
+// newest first, joined with the order's reference + item snapshot + dropoff AREA
+// (city/district). Shaped as the { deliveries, next_cursor } envelope the client expects.
 //
 // Security (spec 001 AC-9): the driver identity is taken ONLY from the verified Linky
 // SELF-ROLLED JWT (`requireUser(req)` → token `sub`), never from the request body — a
@@ -28,13 +29,13 @@ const ACTIVE_STATUSES = ['assigned', 'in_transit'];
 
 type DeliveryRow = {
   id: string;
+  order_id: string;
   status: string;
   created_at: string;
   delivery_address: { city?: string; district?: string } | null;
   orders: {
     reference: string | null;
     product_snapshot: { title?: string; photo?: string } | null;
-    shops: { name?: string } | null;
   } | null;
 };
 
@@ -59,7 +60,7 @@ Deno.serve(async (req) => {
   const { data, error } = await admin
     .from('deliveries')
     .select(
-      'id, status, created_at, delivery_address, orders ( reference, product_snapshot, shops ( name ) )',
+      'id, order_id, status, created_at, delivery_address, orders ( reference, product_snapshot )',
     )
     .eq('livreur_id', userId)
     .in('status', ACTIVE_STATUSES)
@@ -74,19 +75,31 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Response shape MIRRORS the canonical deployed function: a { deliveries, next_cursor }
+  // envelope of NESTED camelCase rows (the client in src/features/deliveries/lib maps it to
+  // its flat view model). Privacy (AC-10): only city/district of the address are returned —
+  // the street `details` is revealed only by get-delivery, at the handoff step.
   const deliveries = ((data ?? []) as DeliveryRow[]).map((row) => ({
     id: row.id,
-    orderRef: row.orders?.reference ?? '',
-    itemTitle: row.orders?.product_snapshot?.title ?? '',
-    itemPhoto: row.orders?.product_snapshot?.photo ?? '',
-    shopName: row.orders?.shops?.name ?? '',
-    dropoffCity: row.delivery_address?.city ?? '',
-    dropoffDistrict: row.delivery_address?.district ?? '',
+    orderId: row.order_id,
     status: row.status,
-    createdAt: Date.parse(row.created_at) || 0,
+    createdAt: row.created_at, // ISO string — the client coerces to epoch ms
+    deliveryAddress: {
+      city: row.delivery_address?.city ?? null,
+      district: row.delivery_address?.district ?? null,
+    },
+    order: row.orders
+      ? {
+          reference: row.orders.reference ?? '',
+          productSnapshot: {
+            title: row.orders.product_snapshot?.title ?? '',
+            photo: row.orders.product_snapshot?.photo ?? '',
+          },
+        }
+      : null,
   }));
 
-  return new Response(JSON.stringify(deliveries), {
+  return new Response(JSON.stringify({ deliveries, next_cursor: null }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
