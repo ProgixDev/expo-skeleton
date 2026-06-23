@@ -42,27 +42,28 @@ export function QrScanner({ onScanned, onCancel }: QrScannerProps) {
     return (
       <Screen testID="deliveries-scanner-permission">
         <View className="flex-1 items-center justify-center gap-3 px-6">
-          <AppText variant="title">Camera access needed</AppText>
+          <AppText variant="title">Accès caméra requis</AppText>
           <AppText variant="caption" className="text-center">
-            Linky Driver uses the camera to scan the customer’s order QR and confirm delivery.
+            Linky Driver utilise la caméra pour scanner le QR de la commande du client et confirmer
+            la livraison.
           </AppText>
           {permanentlyDenied ? (
             <Button
               testID="deliveries-scanner-settings"
-              label="Open Settings"
+              label="Ouvrir les réglages"
               onPress={() => void Linking.openSettings()}
             />
           ) : (
             <Button
               testID="deliveries-scanner-enable"
-              label="Allow camera"
+              label="Autoriser la caméra"
               onPress={() => void requestPermission()}
             />
           )}
           <Button
             testID="deliveries-scanner-cancel"
             variant="ghost"
-            label="Cancel"
+            label="Annuler"
             onPress={onCancel}
           />
         </View>
@@ -84,12 +85,12 @@ export function QrScanner({ onScanned, onCancel }: QrScannerProps) {
         />
         <View className="absolute inset-x-0 bottom-0 gap-3 bg-surface/95 p-5">
           <AppText variant="caption" className="text-center">
-            Point the camera at the customer’s order QR code.
+            Pointe la caméra vers le QR de la commande du client.
           </AppText>
           <Button
             testID="deliveries-scanner-cancel"
             variant="ghost"
-            label="Cancel"
+            label="Annuler"
             onPress={onCancel}
           />
         </View>

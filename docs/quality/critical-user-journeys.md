@@ -38,9 +38,9 @@ enforces).
 - **Owner:** founder (driver app)
 - **Flow:** `.maestro/flows/handoff-cuj.yaml` · Smoke: `.maestro/flows/smoke.yaml`
 - **Journey:** open an assigned delivery → see its full detail (order ref, item, full
-  street address, buyer name, status) → tap “Scan to confirm delivery” → scan the
-  buyer’s on-screen order QR → review the matched order → tap “Confirm delivery” →
-  success (“delivered — payment released”); the job leaves the active list.
+  street address, buyer name, status) → tap « Scanner la livraison » → scan the
+  buyer’s on-screen order QR → review the matched order → tap « Confirmer la livraison » →
+  success (« Livraison confirmée ✅ », escrow released); the job leaves the active list.
 - **Edge cases agents must try:** a QR for another order/driver (mismatch, nothing
   released); a forged/expired token (server rejects → mismatch); an already-delivered
   order (idempotent — told it’s already done, no second release); camera permission

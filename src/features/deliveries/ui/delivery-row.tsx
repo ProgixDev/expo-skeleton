@@ -10,17 +10,17 @@ import { AppText, Card } from '@/shared/ui';
 import type { Delivery } from '../model/schema';
 
 const STATUS_LABEL: Record<string, string> = {
-  assigned: 'Assigned',
-  in_transit: 'In transit',
+  assigned: 'Assignée',
+  in_transit: 'En cours',
 };
 
 function timeAgo(ts: number): string {
   const mins = Math.round((Date.now() - ts) / 60_000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return 'à l’instant';
+  if (mins < 60) return `il y a ${mins} min`;
   const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.round(hrs / 24)}d ago`;
+  if (hrs < 24) return `il y a ${hrs} h`;
+  return `il y a ${Math.round(hrs / 24)} j`;
 }
 
 type Props = { delivery: Delivery; index: number };
@@ -44,7 +44,7 @@ export function DeliveryRow({ delivery, index }: Props) {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Open delivery ${delivery.orderRef}`}
+        accessibilityLabel={`Ouvrir la livraison ${delivery.orderRef}`}
         onPress={() => router.push({ pathname: '/delivery/[id]', params: { id: delivery.id } })}
       >
         <Card className="mb-3 flex-row gap-3">
@@ -74,7 +74,7 @@ export function DeliveryRow({ delivery, index }: Props) {
               </AppText>
             </View>
             <AppText variant="label" numberOfLines={1}>
-              {delivery.itemTitle || 'Item'}
+              {delivery.itemTitle || 'Article'}
             </AppText>
             {/* The list endpoint exposes no shop name; render the line only when present. */}
             {delivery.shopName ? (

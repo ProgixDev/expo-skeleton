@@ -45,7 +45,7 @@ describe('<DeliveriesScreen />', () => {
     expect(screen.getByText('Mugs Co')).toBeOnTheScreen();
     // Dropoff is AREA only (city · district) — never a street address (AC-10).
     expect(screen.getByText('Conakry · Ratoma')).toBeOnTheScreen();
-    expect(screen.getByText('Assigned')).toBeOnTheScreen();
+    expect(screen.getByText('Assignée')).toBeOnTheScreen();
   });
 
   it('shows the empty state when nothing is assigned (AC-5)', async () => {
