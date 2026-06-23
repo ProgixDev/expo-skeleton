@@ -5,11 +5,11 @@
 // status, marks the delivery delivered, flips the order to `released`, and releases the
 // escrow to the seller. On success it returns { delivery, order_status }.
 //
-// Security (AC-9): `p_livreur_id` is taken ONLY from the verified JWT (`getUser()`),
-// never from the request body — a client cannot release another driver's delivery or
-// claim to be someone else. The RPC is the single source of truth for authorization,
-// token validity, and idempotency; this function only translates its error codes to the
-// Linky French envelope `{ error: { code, message_fr } }` + an HTTP status.
+// Security (AC-9): `p_livreur_id` is taken ONLY from the verified Linky self-rolled JWT
+// (`requireUser(req)` → token `sub`), never from the request body — a client cannot
+// release another driver's delivery or claim to be someone else. The RPC is the single
+// source of truth for authorization, token validity, and idempotency; this function only
+// translates its error codes to the Linky French envelope `{ error: { code, message_fr } }`.
 //
 // RPC error codes (raised by the migration) → mapping:
 //   ORDER_NOT_FOUND / DELIVERY_NOT_FOUND        → 404  (client: mismatch)
@@ -17,20 +17,20 @@
 //   INVALID_SCAN_TOKEN                           → 400  (client: mismatch — AC-5)
 //   INVALID_STATUS / INVALID_DELIVERY_STATUS     → 400  (client: already_done — AC-8)
 //
-// AUTH CAVEAT (deploy): modeled on THIS repo's `list-livreur-deliveries` (Supabase Auth
-// `getUser()` + `verify_jwt = true`). The canonical Linky backend uses a SELF-ROLLED JWT
-// (`requireUser` + LINKY_JWT_SECRET, `verify_jwt = false`) AND this function ALREADY
-// EXISTS there. When pointing at the real backend, prefer the canonical function (or swap
-// `getUser()` → `requireUser(req)` and flip verify_jwt); the { order_id, scan_token }
-// contract + error codes already match.
+// AUTH (deploy): matches the live Linky backend — SELF-ROLLED JWT verified in-function
+// (`requireUser` + LINKY_JWT_SECRET), `verify_jwt = false` at the gateway (the app-issued
+// JWT isn't a Supabase Auth token). This function ALSO already exists in the canonical
+// backend; the { order_id, scan_token } contract + error codes match, so either can serve
+// the client. The client sends `Authorization: Bearer <access token>` + anon `apikey`.
 //
 // NOTE: Deno edge function — excluded from `npm run verify`. Verify with `deno check` +
 // a manual call against a seeded livreur. DEPLOY DEFERRED (no Supabase access on this host).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { requireUser } from '../_shared/auth.ts';
+
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 // Never log a raw scan_token/order_id — redact UUIDs before any console output.
@@ -56,20 +56,12 @@ function jsonError(code: string, message_fr: string, status: number) {
 }
 
 Deno.serve(async (req) => {
-  const authHeader = req.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) {
-    return jsonError('UNAUTHORIZED', 'Non authentifié.', 401);
-  }
-
-  const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const {
-    data: { user },
-    error: userError,
-  } = await userClient.auth.getUser();
-  if (userError || !user) {
+  // Identify the caller from their Linky self-rolled JWT (verified in-function). The
+  // driver id is NEVER taken from the request body (AC-9).
+  let userId: string;
+  try {
+    userId = await requireUser(req);
+  } catch {
     return jsonError('UNAUTHORIZED', 'Non authentifié.', 401);
   }
 
@@ -101,7 +93,7 @@ Deno.serve(async (req) => {
   // the scan_token, and the order/delivery status, then releases escrow atomically.
   const { error: rpcError } = await admin.rpc('livreur_confirm_handoff', {
     p_order_id: orderId,
-    p_livreur_id: user.id, // JWT-derived — never from the body (AC-9)
+    p_livreur_id: userId, // JWT-derived — never from the body (AC-9)
     p_scan_token: scanToken,
   });
 

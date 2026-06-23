@@ -3,32 +3,32 @@
 // FULL street address (`delivery_address.details`) + the buyer's `display_name`,
 // because the driver needs both at the door.
 //
-// Security (AC-9): the driver identity comes ONLY from the verified JWT
-// (`getUser()`), never from the request body — the client sends just the
-// `delivery_id`. The row is read with the service_role (the `deliveries` table has
-// RLS enabled with no client policies) but scoped to `livreur_id = <jwt user>`, so a
-// driver can never fetch a delivery that isn't theirs. A non-existent or not-yours id
-// returns 404 DELIVERY_NOT_FOUND (no information leak about other drivers' rows).
+// Security (AC-9): the driver identity comes ONLY from the verified Linky SELF-ROLLED
+// JWT (`requireUser(req)` → token `sub`), never from the request body — the client
+// sends just the `delivery_id`. The row is read with the service_role (the `deliveries`
+// table has RLS enabled with no client policies) but scoped to `livreur_id = <jwt user>`,
+// so a driver can never fetch a delivery that isn't theirs. A non-existent or not-yours
+// id returns 404 DELIVERY_NOT_FOUND (no information leak about other drivers' rows).
 //
 // Privacy / secrets: the order's `scan_token` is NEVER selected or returned — the
 // driver only obtains it by physically scanning the buyer's on-screen QR (the proof
 // of handoff). See LINKY_DRIVER_QR_BRIEF.md.
 //
-// AUTH CAVEAT (deploy): this is modeled on THIS repo's `list-livreur-deliveries`
-// (Supabase Auth `getUser()` + `verify_jwt = true`). The canonical Linky backend
-// (linky-mobile/app-mobile/supabase) instead uses a SELF-ROLLED JWT (`requireUser` +
-// LINKY_JWT_SECRET) with `verify_jwt = false`. When deploying against the real Linky
-// backend, swap the `getUser()` block for `requireUser(req)` and flip verify_jwt — the
-// wire response shape and the `{ delivery_id }` contract already match the canonical fn.
+// AUTH (deploy): this matches the live Linky backend — a SELF-ROLLED JWT verified
+// in-function via `requireUser` + LINKY_JWT_SECRET, with `verify_jwt = false` at the
+// gateway (the app-issued JWT is not a Supabase Auth token, so the gateway can't verify
+// it). The client (src/shared/lib/api.ts) sends `Authorization: Bearer <access token>`
+// + the anon key in `apikey`. The `{ delivery_id }` contract + wire shape are unchanged.
 //
 // NOTE: Deno edge function — excluded from `npm run verify` (RN toolchain). Verify with
-// `deno check` and a manual `functions.invoke` against a seeded livreur. DEPLOY DEFERRED
-// (no Supabase access on this host).
+// `deno check` and a manual call against a seeded livreur. DEPLOY DEFERRED (no Supabase
+// access on this host).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+
+import { requireUser } from '../_shared/auth.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 // Redact UUIDs (e.g. the queried delivery_id) from any log line — match the redaction
@@ -53,34 +53,15 @@ type DeliveryDetailRow = {
 };
 
 Deno.serve(async (req) => {
-  const authHeader = req.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) {
+  // Identify the caller from their Linky self-rolled JWT (verified in-function). This is
+  // the ONLY source of the driver id — there is no client-supplied identity.
+  let userId: string;
+  try {
+    userId = await requireUser(req);
+  } catch {
     return new Response(
       JSON.stringify({ error: { code: 'UNAUTHORIZED', message_fr: 'Non authentifié.' } }),
-      {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
-  }
-
-  // Identify the caller from their JWT (network-verified). This is the ONLY source of
-  // the driver id — there is no client-supplied identity.
-  const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const {
-    data: { user },
-    error: userError,
-  } = await userClient.auth.getUser();
-  if (userError || !user) {
-    return new Response(
-      JSON.stringify({ error: { code: 'UNAUTHORIZED', message_fr: 'Non authentifié.' } }),
-      {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      },
+      { status: 401, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
@@ -111,7 +92,7 @@ Deno.serve(async (req) => {
       'id, order_id, status, created_at, delivery_address, orders ( id, reference, product_snapshot, amount_minor, status, buyer:users!orders_buyer_id_fkey ( display_name ) )',
     )
     .eq('id', deliveryId)
-    .eq('livreur_id', user.id)
+    .eq('livreur_id', userId)
     .maybeSingle();
 
   if (error) {

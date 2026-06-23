@@ -22,8 +22,11 @@ if (!existsSync(fnDir)) {
 }
 
 const config = existsSync(configPath) ? readFileSync(configPath, 'utf8') : '';
+// Skip dot-dirs and the `_shared` convention: Supabase treats an underscore-prefixed
+// folder under functions/ as shared code (imported by real functions), NOT a deployable
+// function, so it has no config block. Mirrors `supabase functions deploy`.
 const names = readdirSync(fnDir).filter(
-  (e) => !e.startsWith('.') && statSync(join(fnDir, e)).isDirectory(),
+  (e) => !e.startsWith('.') && !e.startsWith('_') && statSync(join(fnDir, e)).isDirectory(),
 );
 
 for (const name of names) {
