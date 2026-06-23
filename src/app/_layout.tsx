@@ -16,7 +16,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuthStore, useProtectedRoute } from '@/features/auth';
 import { useDeliveriesStore } from '@/features/deliveries';
 import '@/shared/lib/env'; // fail fast on invalid environment
-import { registerSupabaseAutoRefresh } from '@/shared/lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,10 +27,11 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
-  // Load the session once, keep it fresh while foregrounded, and route-guard.
+  // Boot the session once (validate the stored Linky refresh token), then route-guard.
+  // The access token is refreshed lazily by the api layer on a 401 — no Supabase
+  // Auth auto-refresh, because this app uses the Linky self-rolled JWT.
   useEffect(() => {
-    const unsubscribe = useAuthStore.getState().init();
-    const stopAutoRefresh = registerSupabaseAutoRefresh();
+    void useAuthStore.getState().init();
     // On sign-out, drop any cached deliveries so the next driver on this device
     // never sees the previous driver's list (spec 001 AC-9).
     const unsubAuth = useAuthStore.subscribe((state, prev) => {
@@ -40,8 +40,6 @@ export default function RootLayout() {
       }
     });
     return () => {
-      unsubscribe();
-      stopAutoRefresh();
       unsubAuth();
     };
   }, []);

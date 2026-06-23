@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/lib/supabase';
+import { ApiError, apiPost } from '@/shared/lib/api';
 
 import {
   DeliveryDetailResponseSchema,
@@ -16,20 +16,14 @@ import {
 const statusOrUnassigned = DeliveryStatusSchema.catch('unassigned');
 
 /**
- * Fetch the signed-in driver's active deliveries from the edge function.
+ * Fetch the signed-in driver's active deliveries from the Linky edge function.
  *
- * The request carries NO driver identity — `functions.invoke` attaches the
- * session JWT automatically and the function derives `livreur_id` from it
- * (spec 001 AC-9). The response is Zod-validated at this network edge.
+ * The request carries NO driver identity — `apiPost` attaches the Linky access
+ * token (self-rolled JWT) and the function derives `livreur_id` from it (spec 001
+ * AC-9). The response is Zod-validated at this network edge.
  */
 export async function fetchDeliveries(): Promise<Delivery[]> {
-  const { data, error } = await supabase.functions.invoke('list-livreur-deliveries', {
-    method: 'POST',
-  });
-
-  if (error) {
-    throw new Error(error.message ?? 'Could not load deliveries');
-  }
+  const data = await apiPost<unknown>({ path: '/list-livreur-deliveries' });
 
   const parsed = DeliveryListSchema.safeParse(data);
   if (!parsed.success) {
@@ -44,17 +38,10 @@ export async function fetchDeliveries(): Promise<Delivery[]> {
  * street address + buyer name — surfaced only for the driver's own assigned delivery
  * (server-enforced via the JWT; we send just the delivery id, AC-9). The wire shape is
  * Zod-parsed at this edge and mapped to the flat detail view model; a null buyer name
- * falls back to “Customer”.
+ * falls back to "Customer".
  */
 export async function getDelivery(deliveryId: string): Promise<DeliveryDetail> {
-  const { data, error } = await supabase.functions.invoke('get-delivery', {
-    method: 'POST',
-    body: { delivery_id: deliveryId },
-  });
-
-  if (error) {
-    throw new Error(error.message ?? 'Could not load delivery');
-  }
+  const data = await apiPost<unknown>({ path: '/get-delivery', body: { delivery_id: deliveryId } });
 
   const parsed = DeliveryDetailResponseSchema.safeParse(data);
   if (!parsed.success) {
@@ -76,23 +63,6 @@ export async function getDelivery(deliveryId: string): Promise<DeliveryDetail> {
     buyerName: buyerName ? buyerName : 'Customer',
     status: statusOrUnassigned.parse(w.status),
   };
-}
-
-/** Read the Linky error envelope `{ error: { code, message_fr } }` off a non-2xx
- * FunctionsHttpError (its `context` is the Response). Returns {} if unparseable. */
-async function readErrorEnvelope(error: unknown): Promise<{ code?: string; message_fr?: string }> {
-  const ctx = (error as { context?: { json?: () => Promise<unknown> } } | null)?.context;
-  if (ctx && typeof ctx.json === 'function') {
-    try {
-      const body = (await ctx.json()) as { error?: { code?: string; message_fr?: string } };
-      if (body?.error?.code) {
-        return { code: body.error.code, message_fr: body.error.message_fr };
-      }
-    } catch {
-      // Unparseable error body — fall through to the generic error outcome.
-    }
-  }
-  return {};
 }
 
 /**
@@ -117,19 +87,26 @@ export async function confirmHandoff({
   scanToken: string;
   idempotencyKey?: string;
 }): Promise<HandoffOutcome> {
-  const { data, error } = await supabase.functions.invoke('livreur-confirm-handoff', {
-    method: 'POST',
-    body: { order_id: orderId, scan_token: scanToken },
-    ...(idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : {}),
-  });
-
-  if (error) {
+  try {
+    const data = await apiPost<unknown>({
+      path: '/livreur-confirm-handoff',
+      body: { order_id: orderId, scan_token: scanToken },
+      idempotencyKey,
+    });
+    const parsed = HandoffResultSchema.safeParse(data);
+    if (!parsed.success) {
+      return { kind: 'error', message: 'Unexpected confirm response' };
+    }
+    return { kind: 'success', orderStatus: parsed.data.order_status };
+  } catch (e) {
+    if (!(e instanceof ApiError)) {
+      return { kind: 'error', message: 'Confirmation failed' };
+    }
     // A transport/fetch failure (no connection) — nothing released while offline (AC-7).
-    if ((error as { name?: string }).name === 'FunctionsFetchError') {
+    if (e.status === 0 || e.code === 'NETWORK_ERROR') {
       return { kind: 'offline' };
     }
-    const { code, message_fr } = await readErrorEnvelope(error);
-    switch (code) {
+    switch (e.code) {
       // Wrong/forged token, not the assigned driver, or a genuinely unknown order/delivery
       // → mismatch (nothing released, AC-5). A retry AFTER a successful release does NOT
       // land here: the order row persists as `released`, so the RPC raises INVALID_STATUS
@@ -144,15 +121,9 @@ export async function confirmHandoff({
       case 'INVALID_DELIVERY_STATUS':
         return { kind: 'already_done' };
       default:
-        // Curated French copy only — never surface a raw supabase-js/transport string to
-        // the money-action error card (it can leak internals).
-        return { kind: 'error', message: message_fr || 'Confirmation failed' };
+        // Curated French copy only — never surface a raw transport string to the
+        // money-action error card (it can leak internals).
+        return { kind: 'error', message: e.message_fr || 'Confirmation failed' };
     }
   }
-
-  const parsed = HandoffResultSchema.safeParse(data);
-  if (!parsed.success) {
-    return { kind: 'error', message: 'Unexpected confirm response' };
-  }
-  return { kind: 'success', orderStatus: parsed.data.order_status };
 }

@@ -1,14 +1,28 @@
-import { supabase } from '@/shared/lib/supabase';
+import { ApiError, apiPost } from '@/shared/lib/api';
 
 import { confirmHandoff, fetchDeliveries, getDelivery } from '../lib/deliveries-api';
 
-// jest.mock is hoisted above the imports by babel-jest, so `supabase` resolves to
-// this mock at module load.
-jest.mock('@/shared/lib/supabase', () => ({
-  supabase: { functions: { invoke: jest.fn() } },
-}));
+// Mock the Linky fetch client. A real ApiError subclass keeps the lib's
+// `instanceof ApiError` branch working (status/code/message_fr carried through).
+jest.mock('@/shared/lib/api', () => {
+  class ApiError extends Error {
+    status: number;
+    code: string;
+    message_fr: string;
+    constructor(status: number, body: { code: string; message_fr: string }) {
+      super(body.message_fr || body.code);
+      this.name = 'ApiError';
+      this.status = status;
+      this.code = body.code;
+      this.message_fr = body.message_fr;
+    }
+  }
+  return { apiPost: jest.fn(), ApiError };
+});
 
-const invoke = supabase.functions.invoke as jest.Mock;
+const mockApiPost = apiPost as jest.Mock;
+const apiErr = (status: number, code: string, message_fr = '') =>
+  new ApiError(status, { code, message_fr });
 
 const ORDER_UUID = '11111111-1111-4111-8111-111111111111';
 const TOKEN_UUID = '22222222-2222-4222-8222-222222222222';
@@ -43,31 +57,22 @@ const detailWire = {
   buyer: { displayName: 'Mariama' },
 };
 
-// supabase-js error shapes: a non-2xx response is a FunctionsHttpError whose `context`
-// is the Response (read the Linky envelope via .json()); a transport failure is a
-// FunctionsFetchError. We branch on `name` (stable across realms, unlike instanceof).
-const httpError = (code: string, message_fr = '') => ({
-  name: 'FunctionsHttpError',
-  context: { json: async () => ({ error: { code, message_fr } }) },
-});
-const fetchError = () => ({ name: 'FunctionsFetchError', message: 'Failed to send a request' });
-
-beforeEach(() => invoke.mockReset());
+beforeEach(() => mockApiPost.mockReset());
 
 describe('fetchDeliveries', () => {
-  it('invokes the endpoint with NO client-supplied identity (AC-9)', async () => {
-    invoke.mockResolvedValue({ data: [validDelivery], error: null });
+  it('calls the endpoint with NO client-supplied identity (AC-9)', async () => {
+    mockApiPost.mockResolvedValue([validDelivery]);
 
     await fetchDeliveries();
 
-    expect(invoke).toHaveBeenCalledWith('list-livreur-deliveries', { method: 'POST' });
-    // The driver id must never be sent by the client — it is derived server-side.
-    const [, options] = invoke.mock.calls[0];
-    expect(JSON.stringify(options ?? {})).not.toMatch(/livreur|user|driver|id/i);
+    expect(mockApiPost).toHaveBeenCalledWith({ path: '/list-livreur-deliveries' });
+    // The driver id must never be sent by the client — there is no request body at
+    // all; identity is derived server-side from the JWT.
+    expect(mockApiPost.mock.calls[0][0].body).toBeUndefined();
   });
 
   it('parses and returns the delivery list', async () => {
-    invoke.mockResolvedValue({ data: [validDelivery], error: null });
+    mockApiPost.mockResolvedValue([validDelivery]);
 
     const result = await fetchDeliveries();
 
@@ -76,24 +81,21 @@ describe('fetchDeliveries', () => {
   });
 
   it('strips unknown fields such as street details (AC-10)', async () => {
-    invoke.mockResolvedValue({
-      data: [{ ...validDelivery, details: '12 Rue Secret' }],
-      error: null,
-    });
+    mockApiPost.mockResolvedValue([{ ...validDelivery, details: '12 Rue Secret' }]);
 
     const result = await fetchDeliveries();
 
     expect(result[0]).not.toHaveProperty('details');
   });
 
-  it('throws when the endpoint returns an error', async () => {
-    invoke.mockResolvedValue({ data: null, error: { message: 'boom' } });
+  it('propagates the backend error (store shows the error state)', async () => {
+    mockApiPost.mockRejectedValue(apiErr(500, 'QUERY_FAILED', 'Erreur serveur.'));
 
-    await expect(fetchDeliveries()).rejects.toThrow('boom');
+    await expect(fetchDeliveries()).rejects.toThrow('Erreur serveur.');
   });
 
   it('throws on an unexpected payload shape', async () => {
-    invoke.mockResolvedValue({ data: [{ id: 'x' }], error: null });
+    mockApiPost.mockResolvedValue([{ id: 'x' }]);
 
     await expect(fetchDeliveries()).rejects.toThrow('Unexpected deliveries response');
   });
@@ -101,17 +103,16 @@ describe('fetchDeliveries', () => {
 
 describe('getDelivery', () => {
   it('sends ONLY the delivery id and returns the flat detail incl. full street address (AC-1/AC-9)', async () => {
-    invoke.mockResolvedValue({ data: detailWire, error: null });
+    mockApiPost.mockResolvedValue(detailWire);
 
     const result = await getDelivery('d1');
 
-    expect(invoke).toHaveBeenCalledWith('get-delivery', {
-      method: 'POST',
+    expect(mockApiPost).toHaveBeenCalledWith({
+      path: '/get-delivery',
       body: { delivery_id: 'd1' },
     });
     // No client identity travels with the request — only the delivery id.
-    const [, options] = invoke.mock.calls[0];
-    expect(JSON.stringify(options.body)).not.toMatch(/livreur|driver|user/i);
+    expect(JSON.stringify(mockApiPost.mock.calls[0][0].body)).not.toMatch(/livreur|driver|user/i);
 
     expect(result.orderId).toBe(ORDER_UUID);
     expect(result.orderRef).toBe('LK-2026-00042');
@@ -123,24 +124,21 @@ describe('getDelivery', () => {
   });
 
   it('falls back to "Customer" when the buyer display name is null (AC-1)', async () => {
-    invoke.mockResolvedValue({
-      data: { ...detailWire, buyer: { displayName: null } },
-      error: null,
-    });
+    mockApiPost.mockResolvedValue({ ...detailWire, buyer: { displayName: null } });
 
     const result = await getDelivery('d1');
 
     expect(result.buyerName).toBe('Customer');
   });
 
-  it('throws when the endpoint returns an error', async () => {
-    invoke.mockResolvedValue({ data: null, error: { message: 'down' } });
+  it('propagates the backend error', async () => {
+    mockApiPost.mockRejectedValue(apiErr(404, 'DELIVERY_NOT_FOUND', 'Livraison introuvable.'));
 
-    await expect(getDelivery('d1')).rejects.toThrow('down');
+    await expect(getDelivery('d1')).rejects.toThrow('Livraison introuvable.');
   });
 
   it('throws on an unexpected payload shape', async () => {
-    invoke.mockResolvedValue({ data: { id: 'd1' }, error: null });
+    mockApiPost.mockResolvedValue({ id: 'd1' });
 
     await expect(getDelivery('d1')).rejects.toThrow('Unexpected delivery response');
   });
@@ -148,29 +146,28 @@ describe('getDelivery', () => {
 
 describe('confirmHandoff', () => {
   it('sends ONLY order id + scan token (no identity, AC-9) and returns success', async () => {
-    invoke.mockResolvedValue({ data: { order_status: 'released' }, error: null });
+    mockApiPost.mockResolvedValue({ order_status: 'released' });
 
     const outcome = await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID });
 
     expect(outcome).toEqual({ kind: 'success', orderStatus: 'released' });
-    const [name, options] = invoke.mock.calls[0];
-    expect(name).toBe('livreur-confirm-handoff');
-    expect(options.body).toEqual({ order_id: ORDER_UUID, scan_token: TOKEN_UUID });
+    const arg = mockApiPost.mock.calls[0][0];
+    expect(arg.path).toBe('/livreur-confirm-handoff');
+    expect(arg.body).toEqual({ order_id: ORDER_UUID, scan_token: TOKEN_UUID });
     // The driver identity is derived server-side from the JWT — never sent.
-    expect(JSON.stringify(options.body)).not.toMatch(/livreur|driver|user/i);
+    expect(JSON.stringify(arg.body)).not.toMatch(/livreur|driver|user/i);
   });
 
-  it('forwards a stable Idempotency-Key header when given (AC-7 retry replays)', async () => {
-    invoke.mockResolvedValue({ data: { order_status: 'released' }, error: null });
+  it('forwards a stable Idempotency-Key when given (AC-7 retry replays)', async () => {
+    mockApiPost.mockResolvedValue({ order_status: 'released' });
 
     await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID, idempotencyKey: 'idem-1' });
 
-    const [, options] = invoke.mock.calls[0];
-    expect(options.headers).toEqual({ 'Idempotency-Key': 'idem-1' });
+    expect(mockApiPost.mock.calls[0][0].idempotencyKey).toBe('idem-1');
   });
 
   it('maps a forged/wrong token to mismatch — nothing released (AC-5)', async () => {
-    invoke.mockResolvedValue({ data: null, error: httpError('INVALID_SCAN_TOKEN') });
+    mockApiPost.mockRejectedValue(apiErr(400, 'INVALID_SCAN_TOKEN'));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'mismatch',
@@ -178,7 +175,7 @@ describe('confirmHandoff', () => {
   });
 
   it('maps not-the-assigned-driver to mismatch (AC-5/AC-9)', async () => {
-    invoke.mockResolvedValue({ data: null, error: httpError('NOT_ASSIGNED_LIVREUR') });
+    mockApiPost.mockRejectedValue(apiErr(403, 'NOT_ASSIGNED_LIVREUR'));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'mismatch',
@@ -186,7 +183,7 @@ describe('confirmHandoff', () => {
   });
 
   it('maps a non-releasable order status to already_done (AC-8)', async () => {
-    invoke.mockResolvedValue({ data: null, error: httpError('INVALID_STATUS') });
+    mockApiPost.mockRejectedValue(apiErr(400, 'INVALID_STATUS'));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'already_done',
@@ -194,7 +191,7 @@ describe('confirmHandoff', () => {
   });
 
   it('maps a non-releasable delivery status to already_done (AC-8)', async () => {
-    invoke.mockResolvedValue({ data: null, error: httpError('INVALID_DELIVERY_STATUS') });
+    mockApiPost.mockRejectedValue(apiErr(400, 'INVALID_DELIVERY_STATUS'));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'already_done',
@@ -202,7 +199,7 @@ describe('confirmHandoff', () => {
   });
 
   it('maps a transport failure to offline — money action is online-only (AC-7)', async () => {
-    invoke.mockResolvedValue({ data: null, error: fetchError() });
+    mockApiPost.mockRejectedValue(apiErr(0, 'NETWORK_ERROR', 'Connexion impossible'));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'offline',
@@ -210,7 +207,7 @@ describe('confirmHandoff', () => {
   });
 
   it('surfaces an unknown server error with its French message', async () => {
-    invoke.mockResolvedValue({ data: null, error: httpError('SERVER_BOOM', 'Erreur serveur.') });
+    mockApiPost.mockRejectedValue(apiErr(500, 'SERVER_BOOM', 'Erreur serveur.'));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'error',
@@ -219,15 +216,8 @@ describe('confirmHandoff', () => {
   });
 
   it('does NOT leak a raw transport string for an unknown code — generic copy only', async () => {
-    invoke.mockResolvedValue({
-      data: null,
-      // A 5xx with no curated French message but a leaky supabase-js .message.
-      error: {
-        name: 'FunctionsHttpError',
-        message: 'Edge Function returned a non-2xx status code',
-        context: { json: async () => ({ error: { code: 'WEIRD_5XX' } }) },
-      },
-    });
+    // A 5xx with an unmapped code and no curated French message.
+    mockApiPost.mockRejectedValue(apiErr(500, 'WEIRD_5XX', ''));
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'error',
@@ -250,14 +240,14 @@ describe('confirmHandoff', () => {
     ];
 
     it.each(cases)('maps %s → %s', async (code, kind) => {
-      invoke.mockResolvedValue({ data: null, error: httpError(code) });
+      mockApiPost.mockRejectedValue(apiErr(400, code));
       const outcome = await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID });
       expect(outcome.kind).toBe(kind);
     });
   });
 
   it('treats an unexpected success payload as an error (not a false release)', async () => {
-    invoke.mockResolvedValue({ data: { nope: true }, error: null });
+    mockApiPost.mockResolvedValue({ nope: true });
 
     expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
       kind: 'error',
