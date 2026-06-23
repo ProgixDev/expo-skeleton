@@ -112,12 +112,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     'expo-font',
     [
-      // Google Play requires targeting a recent API level (35+ since 2025-08-31;
-      // expect 36 ~2026-08). Store-readiness: STORE-GP-TARGETAPI.
+      // compileSdk 36 is REQUIRED by expo-camera's androidx.camera:*:1.6.0 (+ androidx.core
+      // 1.18 / browser 1.9) AAR metadata — a dev build fails `checkDebugAarMetadata` on 35.
+      // targetSdk (runtime behavior opt-in) is kept at 35 — still valid for Google Play
+      // (36 becomes required ~2026-08); bump it with on-device testing before that release.
+      // Store-readiness: STORE-GP-TARGETAPI.
       'expo-build-properties',
       {
         android: {
-          compileSdkVersion: 35,
+          compileSdkVersion: 36,
           targetSdkVersion: 35,
         },
       },
