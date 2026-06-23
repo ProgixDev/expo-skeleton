@@ -27,8 +27,8 @@ type Props = { delivery: Delivery; index: number };
 
 /**
  * One row in the driver's worklist. Shows only the dropoff AREA (city · district)
- * — never the street address (spec 001 AC-10). Tapping routes toward the delivery
- * detail/handoff screen (a separate spec; a placeholder route exists for now).
+ * — never the street address (spec 001 AC-10). Tapping opens the delivery detail /
+ * QR-handoff screen, where the full address is revealed and the driver confirms (spec 002).
  */
 export function DeliveryRow({ delivery, index }: Props) {
   const reduced = useReducedMotion();
