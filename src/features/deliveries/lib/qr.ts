@@ -12,8 +12,12 @@
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-// Anchored, scheme + path + single `token` query, captures order id and token.
-const QR_RE = /^linky:\/\/order\/([^/?#]+)\/confirm\?token=([^&?#]+)$/i;
+// Anchored, scheme + path + single `token` query, captures order id and token. A
+// trailing slash is tolerated (`\/?$`) to match the canonical brief's QR regex
+// (LINKY_DRIVER_QR_BRIEF.md) — the consumer app may emit `…/confirm?token=<uuid>/`,
+// and rejecting it would block a legitimate handoff at the door. The token class
+// excludes `/` so the optional slash is consumed by `\/?`, not swallowed into the token.
+const QR_RE = /^linky:\/\/order\/([^/?#]+)\/confirm\?token=([^/&?#]+)\/?$/i;
 
 export interface ParsedOrderQr {
   orderId: string;
