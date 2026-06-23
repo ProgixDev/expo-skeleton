@@ -16,3 +16,18 @@ verify_jwt = true
 # (defense-in-depth on top of the in-function getUser() check). The livreur id is
 # derived from this verified token, never from the request body (spec 001 AC-9).
 verify_jwt = true
+
+[functions.get-delivery]
+# Called by a signed-in driver to load ONE delivery's full detail (spec 002). Require a
+# valid Supabase JWT at the gateway; the in-function getUser() then scopes the read to
+# livreur_id = caller (the full address + buyer name are revealed only for the driver's
+# own assigned delivery — AC-9). Deploy DEFERRED (no Supabase access here).
+verify_jwt = true
+
+[functions.livreur-confirm-handoff]
+# The irreversible money action (spec 002): scan-confirm a handoff → release escrow.
+# Require a valid Supabase JWT at the gateway; the livreur id is derived from the verified
+# token and passed to the service-role RPC, never from the request body (AC-9). Deploy
+# DEFERRED. NOTE: this function ALSO exists in the canonical Linky backend (self-rolled
+# JWT, verify_jwt = false) — see the function header for the deploy auth caveat.
+verify_jwt = true
