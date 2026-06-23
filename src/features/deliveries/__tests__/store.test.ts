@@ -75,6 +75,28 @@ describe('deliveries store', () => {
     expect(s.items).toHaveLength(0);
     expect(s.status).toBe('idle');
   });
+
+  it('removeDelivery drops a confirmed delivery from the active list (spec 002 AC-4)', async () => {
+    mockFetch.mockResolvedValue([make({ id: 'a' }), make({ id: 'b' })]);
+    await useDeliveriesStore.getState().load();
+    expect(useDeliveriesStore.getState().items.map((d) => d.id)).toEqual(['a', 'b']);
+
+    useDeliveriesStore.getState().removeDelivery('a');
+
+    const items = useDeliveriesStore.getState().items;
+    expect(items.map((d) => d.id)).toEqual(['b']);
+    // It also leaves the derived active list (the worklist the driver sees).
+    expect(selectActiveDeliveries(items).find((d) => d.id === 'a')).toBeUndefined();
+  });
+
+  it('removeDelivery is a no-op for an unknown id', async () => {
+    mockFetch.mockResolvedValue([make({ id: 'a' })]);
+    await useDeliveriesStore.getState().load();
+
+    useDeliveriesStore.getState().removeDelivery('does-not-exist');
+
+    expect(useDeliveriesStore.getState().items.map((d) => d.id)).toEqual(['a']);
+  });
 });
 
 describe('selectActiveDeliveries', () => {
