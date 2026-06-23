@@ -85,6 +85,14 @@ Deno.serve(async (req) => {
     return jsonError('INVALID_INPUT', 'Requête invalide.', 400);
   }
 
+  // Every write carries an Idempotency-Key (uuid) per the Linky API contract — the client
+  // mints it ONCE per handoff so a retry replays rather than re-releases. The canonical
+  // backend's reserve-first idempotency layer keys on this header; this (deferred) skeleton
+  // surfaces it for observability and relies on the RPC's atomic status gate (a released
+  // order → INVALID_STATUS) as the backstop against a double release. When deploying
+  // standalone, wire this key to a real idempotency table before the RPC call.
+  const idempotencyKey = req.headers.get('Idempotency-Key') ?? '';
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -109,6 +117,10 @@ Deno.serve(async (req) => {
     console.error('livreur-confirm-handoff RPC failed', scrub(raw));
     return jsonError('CONFIRM_FAILED', 'La confirmation a échoué.', 500);
   }
+
+  // Observability: record that an idempotency key accompanied the release (never log the
+  // key value). A future standalone deploy would consult it here to short-circuit replays.
+  console.log('livreur-confirm-handoff released', idempotencyKey ? '(idempotent)' : '(no-key)');
 
   // Success — re-read the released order status + the delivery row for the response.
   // (The RPC returns void; the canonical function shapes { delivery, order_status }.)

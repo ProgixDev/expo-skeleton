@@ -252,6 +252,28 @@ describe('<DeliveryDetailScreen />', () => {
     expect(useDeliveriesStore.getState().items.find((d) => d.id === 'd1')).toBeDefined();
   });
 
+  it('a lost-response retry after the release already happened lands on already-done, never a second release (AC-8)', async () => {
+    mockGet.mockResolvedValue(DETAIL);
+    // The first confirm actually releases server-side but the response is dropped → offline.
+    mockConfirm.mockResolvedValueOnce({ kind: 'offline' });
+
+    render(<DeliveryDetailScreen id="d1" />);
+    await reachReview();
+    fireEvent.press(screen.getByTestId('delivery-detail-confirm-button'));
+    expect(await screen.findByTestId('delivery-detail-offline')).toBeOnTheScreen();
+
+    // Reconnect → the retry hits the idempotent server, which reports the order is already
+    // released (INVALID_STATUS → already_done). It must NOT show success or remove the item
+    // a second time — the money action stays released-once.
+    mockConfirm.mockResolvedValueOnce({ kind: 'already_done' });
+    fireEvent.press(screen.getByTestId('delivery-detail-offline-retry'));
+
+    expect(await screen.findByTestId('delivery-detail-already-done')).toBeOnTheScreen();
+    expect(screen.queryByTestId('delivery-detail-success')).toBeNull();
+    expect(useDeliveriesStore.getState().items.find((d) => d.id === 'd1')).toBeDefined();
+    expect(mockConfirm).toHaveBeenCalledTimes(2);
+  });
+
   it('shows a load error with retry when the detail fetch fails', async () => {
     mockGet.mockRejectedValueOnce(new Error('down'));
 

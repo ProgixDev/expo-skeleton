@@ -30,6 +30,11 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+// Redact UUIDs (e.g. the queried delivery_id) from any log line — match the redaction
+// discipline of livreur-confirm-handoff.
+const scrub = (s: string) => s.replace(UUID_RE, '<uuid-redacted>');
+
 type DeliveryDetailRow = {
   id: string;
   order_id: string;
@@ -110,7 +115,7 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (error) {
-    console.error('get-delivery query failed', error.message);
+    console.error('get-delivery query failed', scrub(error.message ?? ''));
     return new Response(
       JSON.stringify({ error: { code: 'QUERY_FAILED', message_fr: 'Erreur serveur.' } }),
       {

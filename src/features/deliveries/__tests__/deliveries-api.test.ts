@@ -218,6 +218,44 @@ describe('confirmHandoff', () => {
     });
   });
 
+  it('does NOT leak a raw transport string for an unknown code — generic copy only', async () => {
+    invoke.mockResolvedValue({
+      data: null,
+      // A 5xx with no curated French message but a leaky supabase-js .message.
+      error: {
+        name: 'FunctionsHttpError',
+        message: 'Edge Function returned a non-2xx status code',
+        context: { json: async () => ({ error: { code: 'WEIRD_5XX' } }) },
+      },
+    });
+
+    expect(await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID })).toEqual({
+      kind: 'error',
+      message: 'Confirmation failed',
+    });
+  });
+
+  // Contract gate: every code the `livreur_confirm_handoff` RPC can raise MUST map to a
+  // deliberate outcome. A new server code with no mapping silently falls to { kind: 'error' }
+  // — for a money action that is a bug, so enumerate them here. Note INVALID_STATUS (the
+  // code a post-release retry raises) → already_done, never a re-attempt invite.
+  describe('error-code → outcome contract', () => {
+    const cases: [string, string][] = [
+      ['INVALID_SCAN_TOKEN', 'mismatch'],
+      ['NOT_ASSIGNED_LIVREUR', 'mismatch'],
+      ['ORDER_NOT_FOUND', 'mismatch'],
+      ['DELIVERY_NOT_FOUND', 'mismatch'],
+      ['INVALID_STATUS', 'already_done'],
+      ['INVALID_DELIVERY_STATUS', 'already_done'],
+    ];
+
+    it.each(cases)('maps %s → %s', async (code, kind) => {
+      invoke.mockResolvedValue({ data: null, error: httpError(code) });
+      const outcome = await confirmHandoff({ orderId: ORDER_UUID, scanToken: TOKEN_UUID });
+      expect(outcome.kind).toBe(kind);
+    });
+  });
+
   it('treats an unexpected success payload as an error (not a false release)', async () => {
     invoke.mockResolvedValue({ data: { nope: true }, error: null });
 

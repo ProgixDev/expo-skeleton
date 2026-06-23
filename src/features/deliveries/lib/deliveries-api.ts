@@ -7,17 +7,13 @@ import {
   HandoffResultSchema,
   type Delivery,
   type DeliveryDetail,
-  type DeliveryStatus,
   type HandoffOutcome,
 } from '../model/schema';
 
-const KNOWN_STATUSES = new Set<string>(DeliveryStatusSchema.options);
-
-function toStatus(raw: string): DeliveryStatus {
-  // Clamp an unknown/new backend status to a non-active value so a drifted row is
-  // filtered out by selectActiveDeliveries rather than breaking the parse.
-  return (KNOWN_STATUSES.has(raw) ? raw : 'unassigned') as DeliveryStatus;
-}
+// Clamp an unknown/new backend status to a non-active value so a drifted row is filtered
+// out by selectActiveDeliveries rather than breaking the parse — single source of truth
+// is DeliveryStatusSchema (no duplicate status list here).
+const statusOrUnassigned = DeliveryStatusSchema.catch('unassigned');
 
 /**
  * Fetch the signed-in driver's active deliveries from the edge function.
@@ -78,7 +74,7 @@ export async function getDelivery(deliveryId: string): Promise<DeliveryDetail> {
     addressDistrict: w.deliveryAddress?.district ?? '',
     addressDetails: w.deliveryAddress?.details ?? '',
     buyerName: buyerName ? buyerName : 'Customer',
-    status: toStatus(w.status),
+    status: statusOrUnassigned.parse(w.status),
   };
 }
 
@@ -134,6 +130,10 @@ export async function confirmHandoff({
     }
     const { code, message_fr } = await readErrorEnvelope(error);
     switch (code) {
+      // Wrong/forged token, not the assigned driver, or a genuinely unknown order/delivery
+      // → mismatch (nothing released, AC-5). A retry AFTER a successful release does NOT
+      // land here: the order row persists as `released`, so the RPC raises INVALID_STATUS
+      // (→ already_done) — *_NOT_FOUND only fires for ids that never existed.
       case 'INVALID_SCAN_TOKEN':
       case 'NOT_ASSIGNED_LIVREUR':
       case 'NOT_ASSIGNED':
@@ -144,7 +144,9 @@ export async function confirmHandoff({
       case 'INVALID_DELIVERY_STATUS':
         return { kind: 'already_done' };
       default:
-        return { kind: 'error', message: message_fr || error.message || 'Confirmation failed' };
+        // Curated French copy only — never surface a raw supabase-js/transport string to
+        // the money-action error card (it can leak internals).
+        return { kind: 'error', message: message_fr || 'Confirmation failed' };
     }
   }
 

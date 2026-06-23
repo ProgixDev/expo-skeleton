@@ -335,13 +335,22 @@ export function DeliveryDetailScreen({ id }: { id: string }) {
             />
           </Card>
         ) : phase.kind === 'confirming' ? (
-          <Button
-            testID="delivery-detail-confirm-button"
-            label="Confirming…"
-            loading
-            disabled
-            onPress={() => {}}
-          />
+          // Same Card chrome as `review` so the highest-stakes transition (the money tap)
+          // doesn't shift the layout; the Confirm button just swaps to a disabled loader.
+          <Card className="gap-3" testID="delivery-detail-confirming">
+            <AppText variant="title">Confirm this handoff?</AppText>
+            <AppText variant="body">
+              Confirming marks order {detail.orderRef} delivered and releases the seller’s payment.
+              This can’t be undone.
+            </AppText>
+            <Button
+              testID="delivery-detail-confirm-button"
+              label="Confirming…"
+              loading
+              disabled
+              onPress={() => {}}
+            />
+          </Card>
         ) : phase.kind === 'detail' ? (
           <Button
             testID="delivery-detail-scan-button"
