@@ -39,6 +39,13 @@ export function SignInScreen() {
     return () => clearInterval(t);
   }, [resendIn]);
 
+  // Dev/QA convenience: in stub mode the backend echoes the OTP as `devCode` (NEVER in
+  // real-email production, where the field is absent). Auto-fill it so QA + the Maestro
+  // sign-in flow can proceed without an inbox; the code stays editable.
+  useEffect(() => {
+    if (devCode) setCode((c) => (c.length === 0 ? devCode : c));
+  }, [devCode]);
+
   const onSendCode = async () => {
     setSubmitting(true);
     const result = await requestCode(email);
