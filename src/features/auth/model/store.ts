@@ -1,94 +1,172 @@
-import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
-import { supabase } from '@/shared/lib/supabase';
+import { ApiError, apiPost } from '@/shared/lib/api';
+import { session } from '@/shared/lib/session';
+import { appStorage } from '@/shared/lib/storage';
 
-import { CredentialsSchema } from './schema';
+import { refreshSession, requestOtp, verifyOtp } from '../lib/auth-api';
+import { AuthUserSchema, EmailSchema, OtpCodeSchema, type AuthUser } from './schema';
 
 type Status = 'loading' | 'authenticated' | 'unauthenticated';
-
 type Result = { ok: true } | { ok: false; error: string };
+
+// Non-sensitive profile cache (id/name/roles/city) so a refreshed session on boot
+// rehydrates the user without a round-trip. TOKENS never live here — they go to
+// secureStorage via `session`. appStorage is plaintext AsyncStorage by design.
+const USER_CACHE_KEY = 'auth-user-v1';
+
+async function cacheUser(user: AuthUser | null): Promise<void> {
+  if (user) await appStorage.set(USER_CACHE_KEY, JSON.stringify(user));
+  else await appStorage.remove(USER_CACHE_KEY);
+}
+
+async function loadCachedUser(): Promise<AuthUser | null> {
+  const raw = await appStorage.get(USER_CACHE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = AuthUserSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
 
 type AuthState = {
   status: Status;
-  session: Session | null;
+  user: AuthUser | null;
   error: string | null;
-  /** Load the current session and subscribe to changes. Returns an unsubscribe. */
-  init: () => () => void;
-  signIn: (email: string, password: string) => Promise<Result>;
-  signUp: (email: string, password: string) => Promise<Result>;
+  // Transient OTP flow state (not persisted): the in-flight otp_id, the email it
+  // was sent to (for resend), and a dev-only echoed code (stub mode).
+  otpId: string | null;
+  pendingEmail: string | null;
+  devCode: string | null;
+
+  /** Boot: validate the stored refresh token and rehydrate the session. */
+  init: () => Promise<void>;
+  /** Step 1 — email → request an OTP. Validates the email client-side first. */
+  requestCode: (email: string) => Promise<Result>;
+  /** Step 2 — verify the 6-digit code → persist tokens → authenticated. */
+  verifyCode: (code: string) => Promise<Result>;
+  /** Re-send a code to the pending email (the screen gates this behind a cooldown). */
+  resendCode: () => Promise<Result>;
+  /** Back to the email step (clears the in-flight OTP). */
+  resetOtp: () => void;
   signOut: () => Promise<void>;
-  /** Permanently delete the account + all its data (store-compliance requirement). */
+  /** In-app account deletion (store-compliance). Hits the backend `delete-account`. */
   deleteAccount: () => Promise<Result>;
 };
 
-function statusFor(session: Session | null): Status {
-  return session ? 'authenticated' : 'unauthenticated';
-}
-
-export const useAuthStore = create<AuthState>()((set) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
   status: 'loading',
-  session: null,
+  user: null,
   error: null,
+  otpId: null,
+  pendingEmail: null,
+  devCode: null,
 
-  init: () => {
-    void supabase.auth.getSession().then(({ data }) => {
-      set({ session: data.session, status: statusFor(data.session) });
-    });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session, status: statusFor(session) });
-    });
-    return () => data.subscription.unsubscribe();
+  init: async () => {
+    const refresh = await session.getRefreshToken();
+    if (!refresh) {
+      set({ status: 'unauthenticated' });
+      return;
+    }
+    try {
+      const tokens = await refreshSession(refresh);
+      await session.set(tokens);
+      set({ user: await loadCachedUser(), status: 'authenticated' });
+    } catch {
+      // Refresh token invalid/expired/offline → require a fresh sign-in.
+      await session.clear();
+      set({ status: 'unauthenticated' });
+    }
   },
 
-  signIn: async (email, password) => {
-    const parsed = CredentialsSchema.safeParse({ email, password });
+  requestCode: async (email) => {
+    const parsed = EmailSchema.safeParse(email.trim());
     if (!parsed.success) {
-      const error = parsed.error.issues[0]?.message ?? 'Invalid credentials';
+      const error = parsed.error.issues[0]?.message ?? 'Enter a valid email address';
       set({ error });
       return { ok: false, error };
     }
     set({ error: null });
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
-    if (error) {
-      set({ error: error.message });
-      return { ok: false, error: error.message };
+    const result = await requestOtp({ email: parsed.data });
+    if (!result.ok) {
+      set({ error: result.message });
+      return { ok: false, error: result.message };
     }
+    set({
+      otpId: result.otpId,
+      pendingEmail: parsed.data,
+      devCode: result.devCode ?? null,
+      error: null,
+    });
     return { ok: true };
   },
 
-  signUp: async (email, password) => {
-    const parsed = CredentialsSchema.safeParse({ email, password });
+  verifyCode: async (code) => {
+    const { otpId } = get();
+    if (!otpId) {
+      const error = 'Request a code first';
+      set({ error });
+      return { ok: false, error };
+    }
+    const parsed = OtpCodeSchema.safeParse(code);
     if (!parsed.success) {
-      const error = parsed.error.issues[0]?.message ?? 'Invalid credentials';
+      const error = parsed.error.issues[0]?.message ?? 'Enter the 6-digit code';
       set({ error });
       return { ok: false, error };
     }
     set({ error: null });
-    const { error } = await supabase.auth.signUp(parsed.data);
-    if (error) {
-      set({ error: error.message });
-      return { ok: false, error: error.message };
+    const result = await verifyOtp({ otpId, code: parsed.data });
+    if (!result.ok) {
+      set({ error: result.message });
+      return { ok: false, error: result.message };
     }
+    await session.set(result.bundle);
+    await cacheUser(result.bundle.user);
+    set({
+      user: result.bundle.user,
+      status: 'authenticated',
+      error: null,
+      otpId: null,
+      pendingEmail: null,
+      devCode: null,
+    });
     return { ok: true };
   },
+
+  resendCode: async () => {
+    const { pendingEmail } = get();
+    if (!pendingEmail) return { ok: false, error: 'No email to resend to' };
+    return get().requestCode(pendingEmail);
+  },
+
+  resetOtp: () => set({ otpId: null, pendingEmail: null, devCode: null, error: null }),
 
   signOut: async () => {
-    // supabase-js clears the LargeSecureStore session via its storage adapter.
-    await supabase.auth.signOut();
-    set({ session: null, status: 'unauthenticated', error: null });
+    await session.clear();
+    await cacheUser(null);
+    set({
+      user: null,
+      status: 'unauthenticated',
+      error: null,
+      otpId: null,
+      pendingEmail: null,
+      devCode: null,
+    });
   },
 
   deleteAccount: async () => {
-    // The Edge Function validates the JWT and deletes the user + cascaded data.
-    // `invoke` attaches the current session's Authorization header automatically.
-    const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
-    if (error) {
-      set({ error: error.message });
-      return { ok: false, error: error.message };
+    try {
+      await apiPost({ path: '/delete-account', body: {} });
+    } catch (e) {
+      const error = e instanceof ApiError ? e.message_fr : 'Could not delete account';
+      set({ error });
+      return { ok: false, error };
     }
-    await supabase.auth.signOut();
-    set({ session: null, status: 'unauthenticated', error: null });
+    await session.clear();
+    await cacheUser(null);
+    set({ user: null, status: 'unauthenticated', error: null });
     return { ok: true };
   },
 }));
