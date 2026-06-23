@@ -64,7 +64,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     // Add tailored NSxxxUsageDescription strings here ONLY for permissions you
     // actually use (a generic string gets rejected; an unused permission also does).
-    // infoPlist: { NSCameraUsageDescription: 'Explain exactly why.' },
+    // Camera is used for the delivery QR-handoff (spec 002, ADR-0009) only.
+    infoPlist: {
+      NSCameraUsageDescription:
+        'Linky Driver uses the camera to scan the customer’s order QR code at handoff, to confirm the delivery and release the seller’s payment.',
+    },
   },
   android: {
     package: bundleId,
@@ -84,6 +88,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    [
+      // Camera for the delivery QR-handoff (spec 002, ADR-0009). QR-only: we never
+      // record audio, so the iOS mic string is omitted and the Android RECORD_AUDIO
+      // permission is disabled (request the minimum — store-readiness STORE-* ). The
+      // CNG config plugin owns the native bits — never hand-edit ios/ or android/.
+      'expo-camera',
+      {
+        cameraPermission:
+          'Linky Driver uses the camera to scan the customer’s order QR code at handoff, to confirm the delivery and release the seller’s payment.',
+        recordAudioAndroid: false,
+      },
+    ],
     [
       'expo-splash-screen',
       {
@@ -120,8 +136,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     eas: {
-      // TODO(company): set after `eas init`
-      // projectId: '<EAS_PROJECT_ID>',
+      projectId: 'd9cc8a52-149a-4041-9de0-b9d5333f8a5f',
     },
   },
 });
