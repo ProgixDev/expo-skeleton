@@ -111,6 +111,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-font',
+    // expo-image and expo-secure-store ship config plugins in SDK 56; `expo install
+    // --fix` recommends registering them. secure-store's plugin also excludes its
+    // keystore entries from Android auto-backup (a security-checklist default).
+    'expo-image',
+    'expo-secure-store',
     [
       // compileSdk 36 is REQUIRED by expo-camera's androidx.camera:*:1.6.0 (+ androidx.core
       // 1.18 / browser 1.9) AAR metadata — a dev build fails `checkDebugAarMetadata` on 35.
