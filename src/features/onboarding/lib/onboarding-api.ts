@@ -88,7 +88,10 @@ export async function submitApplication(input: ApplicationInput): Promise<Submit
         full_name: input.full_name,
         city: input.city,
         vehicle_type: input.vehicle_type,
-        id_photo_url: input.id_photo_url ?? null,
+        // The backend accepts id_photo_url omitted or as a string — NEVER null: its
+        // validator rejects null → 400 INVALID_BODY (« Corps invalide »). Only send the
+        // field when we actually have a URL; omit it otherwise (no ID photo attached).
+        ...(input.id_photo_url ? { id_photo_url: input.id_photo_url } : {}),
         answers: input.answers,
       },
     });

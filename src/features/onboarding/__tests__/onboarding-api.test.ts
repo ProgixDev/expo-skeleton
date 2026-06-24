@@ -79,7 +79,6 @@ describe('submitApplication', () => {
         full_name: 'Mamadou Diallo',
         city: 'Conakry',
         vehicle_type: 'moto',
-        id_photo_url: null,
         answers: {
           zones: 'Kaloum, Ratoma',
           availability: 'Lun–Sam, 8h–18h',
@@ -90,6 +89,20 @@ describe('submitApplication', () => {
       },
     });
     expect(result).toEqual({ ok: true, application: { id: 'app1' } });
+  });
+
+  // Regression: the backend's `valid()` rejects a null id_photo_url (it accepts the
+  // field omitted or as a string) → a null sent the body to 400 INVALID_BODY. The
+  // wire body must OMIT the key when no photo is attached, and forward it when present.
+  it('omits id_photo_url when none, and forwards it when provided', async () => {
+    mockApiPost.mockResolvedValue({ application: { id: 'app1' } });
+
+    await submitApplication(validInput); // id_photo_url: null
+    expect(mockApiPost.mock.calls[0][0].body).not.toHaveProperty('id_photo_url');
+
+    mockApiPost.mockClear();
+    await submitApplication({ ...validInput, id_photo_url: 'https://cdn.linky.gn/id/abc.jpg' });
+    expect(mockApiPost.mock.calls[0][0].body.id_photo_url).toBe('https://cdn.linky.gn/id/abc.jpg');
   });
 
   it('maps APPLICATION_PENDING → pending_exists with the French message', async () => {
