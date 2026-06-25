@@ -23,7 +23,7 @@ supabase db reset && supabase test db
 Use it:
 
 ```tsx
-<FollowButton userId={profileId} />
+<FollowButton userId={profileId} />;
 // or headless:
 const { following, followers, toggle } = useFollow(profileId);
 ```

@@ -1,0 +1,34 @@
+{
+  "name": "social-auth",
+  "summary": "Native Apple + Google sign-in that goes THROUGH the backend seam: obtain the native credential, hand the idToken to backend.auth (Supabase signInWithIdToken OR your custom API's /auth/oauth).",
+  "status": "ready",
+  "installTo": "src/features/social-auth",
+  "devKeysNeeded": true,
+  "deps": {
+    "expo-apple-authentication": "^7.0.0",
+    "@react-native-google-signin/google-signin": "^13.0.0"
+  },
+  "expoInstall": ["expo-apple-authentication", "@react-native-google-signin/google-signin"],
+  "env": [
+    {
+      "name": "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID",
+      "where": "client",
+      "required": true,
+      "note": "Google OAuth *Web* client id (NOT the iOS/Android client id). Used as GoogleSignin webClientId so the returned idToken's audience matches what the backend verifies. Public by design — it identifies, it does not authorize."
+    }
+  ],
+  "iosNotes": [
+    "Apple: enable the 'Sign In with Apple' capability/entitlement on the iOS target (CNG: add via app.json `ios.usesAppleSignIn: true` or the expo-apple-authentication config plugin — never edit ios/ by hand).",
+    "Google: add the iOS OAuth client's reversed-client-id URL scheme; the google-signin config plugin handles the native wiring. Apple sign-in is iOS-only — the button guards on Platform.OS."
+  ],
+  "backends": ["supabase", "api"],
+  "migrations": [],
+  "routes": [],
+  "postInstall": [
+    "npx expo install expo-apple-authentication @react-native-google-signin/google-signin",
+    "Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (Google Cloud → Credentials → Web client id) AND add it to the EnvSchema in src/shared/lib/env.ts (process.env is read only there).",
+    "Configure the provider on your CHOSEN backbone: Supabase → enable Apple & Google in Auth → Providers (see server/supabase/README.md, no SQL); custom API → implement POST /auth/oauth that verifies the idToken server-side and issues your tokens (see server/api/routes.md).",
+    "iOS: enable Sign In with Apple entitlement (ios.usesAppleSignUp / config plugin); a dev build (not Expo Go) is required for both native modules.",
+    "Replace the placeholder buttons (src/ui/social-buttons.tsx) after the Claude Design pass."
+  ]
+}

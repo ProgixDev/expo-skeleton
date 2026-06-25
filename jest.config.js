@@ -10,9 +10,9 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
   // The feature-pack library is parked, opt-in code — don't run its tests as part
   // of the app suite (they run once a pack is installed into src/).
-  testPathIgnorePatterns: ['/node_modules/', '/packs/'],
+  testPathIgnorePatterns: ['/node_modules/', '/packs/', '/presets/'],
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|expo-router|expo-modules-core|react-native-css-interop|nativewind|@react-native-async-storage/.*|react-native-.*|zustand)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?(-[\\w-]+)?|@expo(nent)?/.*|@expo-google-fonts/.*|expo-router|expo-modules-core|react-native-css-interop|nativewind|@react-native-async-storage/.*|react-native-.*|zustand)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',

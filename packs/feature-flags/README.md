@@ -25,7 +25,9 @@ Use it:
 
 ```tsx
 // src/app/_layout.tsx
-<FlagsProvider><Stack /></FlagsProvider>
+<FlagsProvider>
+  <Stack />
+</FlagsProvider>;
 
 // anywhere
 const newCheckout = useFlag('new_checkout');

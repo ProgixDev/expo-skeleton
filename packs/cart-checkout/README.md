@@ -27,8 +27,8 @@ Flow:
 ```tsx
 const { add, checkout } = useCart();
 add(productId);
-const orderId = await checkout();         // server prices it
-if (orderId) startPayment(orderId);       // Stripe (web) / RevenueCat (native)
+const orderId = await checkout(); // server prices it
+if (orderId) startPayment(orderId); // Stripe (web) / RevenueCat (native)
 ```
 
 ## Security — why totals are trustworthy

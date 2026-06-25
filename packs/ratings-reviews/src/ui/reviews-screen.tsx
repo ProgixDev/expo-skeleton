@@ -9,13 +9,7 @@ import { useReviews } from '../use-reviews';
  * DESIGN: replace after the Claude Design pass. Functional placeholder: shows the
  * average + count, a 1-5 picker to submit your review, and the list.
  */
-export function ReviewsScreen({
-  entityType,
-  entityId,
-}: {
-  entityType: string;
-  entityId: string;
-}) {
+export function ReviewsScreen({ entityType, entityId }: { entityType: string; entityId: string }) {
   const { reviews, summary, error, submit } = useReviews(entityType, entityId);
   const [rating, setRating] = useState(0);
 
@@ -28,7 +22,10 @@ export function ReviewsScreen({
         <View className="flex-row gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <Pressable key={n} testID={`star-${n}`} onPress={() => setRating(n)}>
-              <AppText variant="title" className={n <= rating ? 'text-brand-600' : 'text-ink-faint'}>
+              <AppText
+                variant="title"
+                className={n <= rating ? 'text-brand-600' : 'text-ink-faint'}
+              >
                 ★
               </AppText>
             </Pressable>

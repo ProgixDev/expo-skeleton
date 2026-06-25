@@ -1,6 +1,11 @@
 import { supabase } from '@/shared/lib/supabase';
 
-import { AiMessageSchema, AiConversationSchema, type AiMessage, type AiConversation } from '../model/chat';
+import {
+  AiMessageSchema,
+  AiConversationSchema,
+  type AiMessage,
+  type AiConversation,
+} from '../model/chat';
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 

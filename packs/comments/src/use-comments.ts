@@ -14,17 +14,20 @@ export function useComments(entityType: string, entityId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (reset = false) => {
-    const r = await listComments(entityType, entityId, reset ? undefined : (cursor ?? undefined));
-    if (!r.ok) {
-      setError(r.error);
+  const load = useCallback(
+    async (reset = false) => {
+      const r = await listComments(entityType, entityId, reset ? undefined : (cursor ?? undefined));
+      if (!r.ok) {
+        setError(r.error);
+        setLoading(false);
+        return;
+      }
+      setComments((prev) => (reset ? r.value.comments : [...prev, ...r.value.comments]));
+      setCursor(r.value.nextCursor);
       setLoading(false);
-      return;
-    }
-    setComments((prev) => (reset ? r.value.comments : [...prev, ...r.value.comments]));
-    setCursor(r.value.nextCursor);
-    setLoading(false);
-  }, [entityType, entityId, cursor]);
+    },
+    [entityType, entityId, cursor],
+  );
 
   useEffect(() => {
     void load(true);
@@ -66,5 +69,13 @@ export function useComments(entityType: string, entityId: string) {
     if (!r.ok) setComments(prev);
   };
 
-  return { comments, loading, error, hasMore: cursor != null, loadMore: () => load(false), post, remove };
+  return {
+    comments,
+    loading,
+    error,
+    hasMore: cursor != null,
+    loadMore: () => load(false),
+    post,
+    remove,
+  };
 }

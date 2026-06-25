@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import { appStorage } from '@/shared/lib/storage';
 
@@ -47,3 +55,9 @@ export function useTranslation(): I18nValue {
   if (!ctx) throw new Error('useTranslation must be used within <I18nProvider>');
   return ctx;
 }
+
+/**
+ * Locale-focused alias of {@link useTranslation}: `const { locale, setLocale, t } =
+ * useLocale()`. Same context, named for call sites that mainly switch language.
+ */
+export const useLocale = useTranslation;

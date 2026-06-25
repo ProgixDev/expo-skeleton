@@ -43,7 +43,6 @@ export function redact(value: unknown, seen = new WeakSet<object>()): unknown {
 }
 
 function emit(level: 'log' | 'warn' | 'error', args: unknown[]): void {
-  // eslint-disable-next-line no-console -- the logger is the sanctioned console wrapper
   console[level](...args.map((a) => redact(a)));
 }
 

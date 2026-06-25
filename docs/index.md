@@ -14,6 +14,7 @@ docs-lint keeps every page linked and every link alive.
 - [Styling](architecture/styling.md) — NativeWind, tokens, animations
 - [Decisions (ADRs)](architecture/decisions/README.md) — why things are this way
 - [Exec plans](architecture/exec-plans/README.md) — durable implementation logs
+- [Two-backbone upgrade](architecture/two-backbone-upgrade.md) — the backend seam, server-state layer, and pack server-half (change log + rationale)
 
 ## Conventions
 

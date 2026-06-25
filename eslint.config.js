@@ -23,6 +23,9 @@ module.exports = defineConfig([
       'coverage/**',
       'reports/**',
       'packs/**', // feature-pack library: parked, opt-in code — not linted until installed
+      'presets/**', // backend presets (supabase / api): parked sources copied in at `init` — not linted until activated
+      'supabase/functions/**', // Deno edge functions — typechecked/linted by Deno, not the app toolchain
+      'orval.config.ts', // codegen config (Node), not app source
       'expo-env.d.ts',
       '**/._*', // macOS AppleDouble files on exFAT/network volumes
     ],
@@ -95,6 +98,11 @@ module.exports = defineConfig([
               name: 'react-native-mmkv',
               message: 'Do not import react-native-mmkv directly. Use @/shared/lib/storage.',
             },
+            {
+              name: '@supabase/supabase-js',
+              message:
+                'Do not import the Supabase SDK directly in features. The backbone is reached only through the seam: @/shared/lib/backend. This keeps features backbone-agnostic (swappable BaaS ↔ custom API). See docs/architecture/decisions/0009-backend-seam-two-backbones.md',
+            },
           ],
           patterns: [
             {
@@ -110,6 +118,13 @@ module.exports = defineConfig([
   {
     // The storage wrapper itself is the one place allowed to touch the libs.
     files: ['src/shared/lib/storage/**'],
+    rules: { 'no-restricted-imports': 'off' },
+  },
+  {
+    // The backend seam (and the legacy supabase client it currently wraps) is the
+    // one place allowed to import the Supabase SDK. Everything else goes through
+    // @/shared/lib/backend. Storage bans still apply elsewhere via the main block.
+    files: ['src/shared/lib/backend/**', 'src/shared/lib/supabase.ts'],
     rules: { 'no-restricted-imports': 'off' },
   },
   prettierConfig,

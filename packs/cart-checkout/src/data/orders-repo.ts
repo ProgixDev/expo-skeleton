@@ -1,6 +1,12 @@
 import { supabase } from '@/shared/lib/supabase';
 
-import { OrderSchema, ProductSchema, type CartLine, type Order, type Product } from '../model/product';
+import {
+  OrderSchema,
+  ProductSchema,
+  type CartLine,
+  type Order,
+  type Product,
+} from '../model/product';
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 

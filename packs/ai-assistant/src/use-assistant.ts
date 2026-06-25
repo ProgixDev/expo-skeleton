@@ -29,42 +29,49 @@ export function useAssistant(initialConversationId?: string) {
     })();
   }, [initialConversationId]);
 
-  const send = useCallback(async (text: string) => {
-    const content = text.trim();
-    if (!content || streaming) return;
-    setError(null);
+  const send = useCallback(
+    async (text: string) => {
+      const content = text.trim();
+      if (!content || streaming) return;
+      setError(null);
 
-    // Ensure a conversation exists.
-    let convId = convRef.current;
-    if (!convId) {
-      const created = await createConversation(content.slice(0, 60));
-      if (!created.ok) return setError(created.error);
-      convId = created.value;
-      setConversationId(convId);
-    }
+      // Ensure a conversation exists.
+      let convId = convRef.current;
+      if (!convId) {
+        const created = await createConversation(content.slice(0, 60));
+        if (!created.ok) return setError(created.error);
+        convId = created.value;
+        setConversationId(convId);
+      }
 
-    const history: ChatTurn[] = [...messages, { role: 'user', content }].map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+      const history: ChatTurn[] = [...messages, { role: 'user', content }].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
 
-    setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
-    await insertMessage(convId, 'user', content);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'user', content },
+        { role: 'assistant', content: '' },
+      ]);
+      await insertMessage(convId, 'user', content);
 
-    setStreaming(true);
-    let assembled = '';
-    for await (const delta of streamReply(history, setError)) {
-      assembled += delta;
-      setMessages((prev) => {
-        const next = [...prev];
-        next[next.length - 1] = { role: 'assistant', content: assembled };
-        return next;
-      });
-    }
-    setStreaming(false);
+      setStreaming(true);
+      let assembled = '';
+      for await (const delta of streamReply(history, setError)) {
+        assembled += delta;
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { role: 'assistant', content: assembled };
+          return next;
+        });
+      }
+      setStreaming(false);
 
-    if (assembled) await insertMessage(convId, 'assistant', assembled);
-  }, [messages, streaming]);
+      if (assembled) await insertMessage(convId, 'assistant', assembled);
+    },
+    [messages, streaming],
+  );
 
   return { conversationId, messages, streaming, error, send };
 }

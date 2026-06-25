@@ -1,0 +1,95 @@
+# Contract for the example feature on the API backbone. The backend team
+# implements these endpoints; `orval` codegens the typed React Query client from
+# this same file (see ROOT orval.config.ts). Schemas MIRROR src/model/schema.ts —
+# the Zod model is the source of truth; keep them in lockstep.
+openapi: 3.1.0
+info:
+  title: Example feature API
+  version: 0.1.0
+  description: Owner-scoped example resources. Auth is required on every route.
+servers:
+  - url: https://api.example.com/v1
+    description: Adjust per environment (see docs/conventions/environments.md).
+security:
+  - bearerAuth: []
+tags:
+  - name: examples
+    description: The example resource.
+paths:
+  /examples:
+    get:
+      operationId: listExamples
+      summary: List the authenticated user's examples
+      tags: [examples]
+      responses:
+        '200':
+          description: The caller's examples, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Example' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createExample
+      summary: Create an example owned by the caller
+      tags: [examples]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateExample' }
+      responses:
+        '201':
+          description: The created example (owner_id stamped server-side).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Example' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Validation failed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    # Mirrors ExampleSchema in src/model/schema.ts.
+    Example:
+      type: object
+      required: [id, owner_id, title, done, created_at]
+      properties:
+        id: { type: string }
+        owner_id:
+          type: string
+          description: Set server-side from the session; clients never send it.
+        title: { type: string, minLength: 1, maxLength: 200 }
+        done: { type: boolean }
+        created_at: { type: string, format: date-time }
+    # Mirrors CreateExampleSchema — the only fields a client may send.
+    CreateExample:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        done: { type: boolean }
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        code: { type: string, nullable: true }

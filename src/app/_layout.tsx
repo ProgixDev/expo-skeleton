@@ -15,6 +15,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore, useProtectedRoute } from '@/features/auth';
 import '@/shared/lib/env'; // fail fast on invalid environment
+import { AppQueryProvider } from '@/shared/lib/query';
 import { registerSupabaseAutoRefresh } from '@/shared/lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
@@ -51,8 +52,10 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView className="flex-1">
-      <Stack screenOptions={{ headerShown: false }} />
-      <StatusBar style="auto" />
+      <AppQueryProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+        <StatusBar style="auto" />
+      </AppQueryProvider>
     </GestureHandlerRootView>
   );
 }

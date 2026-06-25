@@ -43,11 +43,7 @@ export function CartScreen({ onOrderPlaced }: { onOrderPlaced?: (orderId: string
             {error}
           </AppText>
         ) : null}
-        <Button
-          label="Checkout"
-          loading={placing}
-          onPress={() => void onCheckout()}
-        />
+        <Button label="Checkout" loading={placing} onPress={() => void onCheckout()} />
       </View>
     </Screen>
   );

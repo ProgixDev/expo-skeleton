@@ -9,9 +9,11 @@ then this file, then linked docs.**
 ## What this repository is
 
 A production skeleton for our mobile apps. Expo SDK 56 · React Native 0.85 ·
-React 19.2 · TypeScript strict · expo-router · Zustand 5 · Zod 4 ·
-NativeWind 4 (Tailwind 3) · Reanimated 4 · Jest + React Native Testing
-Library · Maestro + Argent for E2E/agentic QA.
+React 19.2 · TypeScript strict · expo-router · Zustand 5 (client state) ·
+TanStack Query 5 (server state) · Zod 4 · NativeWind 4 (Tailwind 3) ·
+Reanimated 4 · Jest + React Native Testing Library · Maestro + Argent for
+E2E/agentic QA. The backbone (Supabase BaaS **or** a custom REST/WebSocket API)
+is reached through one seam — see "Backend seam" below (ADR-0009).
 
 Expo has changed significantly: read the versioned docs at
 https://docs.expo.dev/versions/v56.0.0/ before writing Expo-specific code.
@@ -121,8 +123,39 @@ offline-sync, app-lifecycle, i18n, feature-flags). It is **excluded from the app
 hooks) plus a **minimal, swappable UI** the design pass replaces. See `packs/README.md`. Do not
 import from `packs/` in app code — install the pack instead.
 
+## Backend seam & two backbones (ADR-0009)
+
+The app talks to its backbone through **one folder**: `src/shared/lib/backend`
+(`backend.auth` / `backend.db` / `backend.realtime` / `backend.storage`). Features
+import the seam — **never** `@supabase/supabase-js` or a raw HTTP client (ESLint
+`no-restricted-imports` bans it). Two interchangeable presets live in `presets/`
+(parked, build-excluded like `packs/`): `backend-supabase` (BaaS — RLS is the trust
+boundary, SDK refreshes tokens) and `backend-api` (custom REST + WebSocket — we own
+401 refresh-token rotation with a single-flight queue). `progix init --backend
+supabase|api` copies one preset into `src/shared/lib/backend`. **Server state** goes
+through TanStack Query (`src/shared/lib/query`, key-factory convention in
+`query-keys.md`); Zustand is client/UI state only. Crash reporting →
+`src/shared/lib/observability`; analytics → `src/shared/lib/analytics` (typed,
+privacy-safe events). See ADR-0009 and ADR-0010.
+
+A **pack** is therefore two halves: a backbone-agnostic **client** (imports the seam)
+and a backbone-specific **server** half (`server/supabase/*.sql` RLS migration **or**
+`server/api/openapi.yaml` + `mock.ts`). `model/schema.ts` (Zod) is the single shared
+contract; `npm run api:gen` (orval) codegens the typed client from an OpenAPI spec.
+
+## Vendored skills (call them, don't reinvent)
+
+`.claude/skills/` carries domain guardrails every dev/agent should invoke when the
+work matches: **`supabase`** (any Supabase work — Auth/RLS/Edge/Storage/migrations),
+**`supabase-postgres-best-practices`** (writing/optimising Postgres + schema), and
+**`react-native-skills`** (RN/Expo components, lists, animations, native modules).
+Trigger the relevant one before writing code in its domain.
+
 ## Hard rules (enforced; do not negotiate in-code)
 
+- **Backbone via the seam:** features import `@/shared/lib/backend`, never the
+  Supabase SDK or a raw HTTP client (ESLint-banned). Server state lives in TanStack
+  Query (key factories), not hand-rolled in Zustand.
 - **Boundaries:** `src/app` (routes, THIN) → `src/features/<name>` (vertical
   slices, public API = `index.ts`) → `src/shared` (generic kit). No
   cross-feature imports; no upward imports. ESLint `boundaries/*` enforces.

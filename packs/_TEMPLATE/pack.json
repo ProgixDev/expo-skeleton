@@ -16,11 +16,19 @@
       "note": "Only needed to ship; dev works without it."
     }
   ],
-  "migrations": ["supabase/0010_example.sql"],
+  "backends": ["supabase", "api"],
+  "server": {
+    "supabase": ["server/supabase/0010_example.sql"],
+    "api": ["server/api/openapi.yaml", "server/api/routes.md", "server/api/mock.ts"]
+  },
   "routes": [{ "path": "src/app/example.tsx", "renders": "ExampleScreen" }],
   "postInstall": [
-    "Run the migration: supabase db reset (or apply 0010_example.sql)",
-    "Add a tab/route entry if the feature needs one",
-    "Replace the placeholder UI after the Claude Design pass"
+    "Pick a backbone (it matches src/shared/lib/backend) and install ONLY that server artifact (see `server`).",
+    "[supabase] Apply the migration: copy server/supabase/0010_example.sql into supabase/migrations/ (next number), then `supabase db reset && supabase test db`.",
+    "[api] Hand server/api/openapi.yaml + server/api/routes.md to the backend team (the contract + trust rules).",
+    "[api] Generate the typed client: `npx orval --config orval.config.ts` after adjusting its input/output paths for this pack (orval + the `api:gen` script are added to package.json by another stream).",
+    "[api] Until the real API exists, wire server/api/mock.ts behind the backend-api preset's fetch so the client works in dev.",
+    "Add a tab/route entry if the feature needs one.",
+    "Replace the placeholder UI after the Claude Design pass."
   ]
 }

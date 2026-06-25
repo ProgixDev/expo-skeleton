@@ -17,3 +17,5 @@ changes, anything you'd otherwise explain twice.
 - [ADR-0006 — The Progix operating system: one front door, four surfaces, specs + skills](0006-progix-operating-system.md) _(four-surface model partially superseded by ADR-0008)_
 - [ADR-0007 — Supabase as the backend, RLS-first](0007-supabase-backend.md)
 - [ADR-0008 — Repo-only operating model (drop cloud CI/CD + Notion/Slack)](0008-repo-only-operating-model.md)
+- [ADR-0009 — Backend seam: one app, two swappable backbones (Supabase / custom API)](0009-backend-seam-two-backbones.md)
+- [ADR-0010 — React Query for server state; crash + analytics seams](0010-react-query-server-state.md)

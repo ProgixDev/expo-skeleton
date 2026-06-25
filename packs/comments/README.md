@@ -24,7 +24,7 @@ supabase db reset && supabase test db
 Attach to anything:
 
 ```tsx
-<CommentsScreen entityType="post" entityId={postId} />
+<CommentsScreen entityType="post" entityId={postId} />;
 // or headless:
 const { comments, post } = useComments('reel', reelId);
 ```

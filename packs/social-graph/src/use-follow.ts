@@ -13,7 +13,10 @@ export function useFollow(targetUserId: string) {
 
   useEffect(() => {
     void (async () => {
-      const [f, counts] = await Promise.all([isFollowing(targetUserId), followCounts(targetUserId)]);
+      const [f, counts] = await Promise.all([
+        isFollowing(targetUserId),
+        followCounts(targetUserId),
+      ]);
       setFollowing(f);
       setFollowers(counts.followers);
     })();

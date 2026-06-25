@@ -1,7 +1,10 @@
 import { getLocales } from 'expo-localization';
 import { I18nManager } from 'react-native';
 
-import { catalogs, en, RTL_LOCALES, type LocaleCode, type TranslationKey } from './catalogs';
+import { catalogs, RTL_LOCALES, type LocaleCode, type TranslationKey } from './catalogs';
+
+/** The merged English catalog — the fallback table for any missing translation. */
+const enCatalog = catalogs.en;
 
 /** The best supported locale for this device, falling back to English. */
 export function deviceLocale(): LocaleCode {
@@ -16,8 +19,8 @@ export function translate(
   key: TranslationKey,
   vars?: Record<string, string | number>,
 ): string {
-  const table = catalogs[locale] ?? en;
-  let out: string = table[key] ?? en[key] ?? key;
+  const table = catalogs[locale] ?? enCatalog;
+  let out: string = table[key] ?? enCatalog[key] ?? key;
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       out = out.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));

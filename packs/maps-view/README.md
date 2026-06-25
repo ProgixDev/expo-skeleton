@@ -24,7 +24,7 @@ Use it:
 
 ```tsx
 const { markers } = useNearby('places', userCoord, 5);
-<MapScreen center={userCoord} markers={markers} onSelect={(m) => router.push(`/place/${m.id}`)} />
+<MapScreen center={userCoord} markers={markers} onSelect={(m) => router.push(`/place/${m.id}`)} />;
 ```
 
 ## Notes
