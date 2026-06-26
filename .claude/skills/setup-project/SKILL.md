@@ -43,4 +43,5 @@ Collect in at most two rounds:
   2. Push and protect `main` (require the CI + E2E checks) — GitHub → Settings → Branches.
   3. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret for persona reviews / agentic QA — Settings → Secrets.
   4. Invite the CODEOWNERS teams.
+- **Register it on the hub:** tell the user to run **`/register-on-progixhub`** to create this app on progixHub and push its specs + product docs (and optionally env) via the MCP — so the central hub tracks it from day one. (Requires the progixHub MCP connected; the skill explains how.)
 - Close with: the project is ready for its first feature — run `/create-spec <idea>`.
